@@ -4,9 +4,17 @@ import { useEffect, useState } from 'react';
 import { createClient } from '@/lib/supabase';
 import Link from 'next/link';
 import { Shield, ShieldAlert } from "lucide-react";
+import React from 'react';
+
+type Hunter = {
+    username: string;
+    total_points: number;
+    total_reports: number;
+    rank: string;
+};
 
 export default function Leaderboard() {
-    const [hunters, setHunters] = useState<any[]>([]);
+    const [hunters, setHunters] = useState<Hunter[]>([]);
     const [isMock, setIsMock] = useState(false);
     const supabase = createClient();
 
@@ -38,10 +46,10 @@ export default function Leaderboard() {
         // or listening to the 'whitehat_reports' and 'users' tables directly to trigger a re-fetch of the view.
         const channel = supabase
             .channel('schema-db-changes')
-            .on('postgres_changes', { event: '*', schema: 'public', table: 'whitehat_reports' }, payload => {
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'whitehat_reports' }, () => {
                 fetchLeaderboard();
             })
-            .on('postgres_changes', { event: '*', schema: 'public', table: 'users' }, payload => {
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'users' }, () => {
                 fetchLeaderboard();
             })
             .subscribe();
@@ -49,9 +57,10 @@ export default function Leaderboard() {
         return () => {
             supabase.removeChannel(channel);
         };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    const rankIcons: Record<string, any> = {
+    const rankIcons: Record<string, React.ElementType> = {
         'Ascended Phoenix': Shield,
         'Inferno Hunter': ShieldAlert,
         'Phoenix Hunter': Shield,
@@ -104,9 +113,9 @@ export default function Leaderboard() {
                                         <tr key={hunter.username} className="hover:bg-white/[0.02] transition-colors group">
                                             <td className="px-6 py-4 whitespace-nowrap">
                                                 <span className={`font-mono text-lg font-bold ${index === 0 ? "text-yellow-500 drop-shadow-[0_0_10px_rgba(234,179,8,0.5)]" :
-                                                        index === 1 ? "text-gray-300 drop-shadow-[0_0_10px_rgba(209,213,219,0.5)]" :
-                                                            index === 2 ? "text-amber-600 drop-shadow-[0_0_10px_rgba(217,119,6,0.5)]" :
-                                                                "text-white/30"
+                                                    index === 1 ? "text-gray-300 drop-shadow-[0_0_10px_rgba(209,213,219,0.5)]" :
+                                                        index === 2 ? "text-amber-600 drop-shadow-[0_0_10px_rgba(217,119,6,0.5)]" :
+                                                            "text-white/30"
                                                     }`}>
                                                     #{index + 1}
                                                 </span>

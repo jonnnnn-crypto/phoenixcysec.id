@@ -18,7 +18,7 @@ export default function CyberLab() {
     const [hovered, setHovered] = useState(false);
 
     useEffect(() => {
-        let ctx = gsap.context(() => {
+        const ctx = gsap.context(() => {
             gsap.from(".lab-card", {
                 y: 40,
                 opacity: 0,

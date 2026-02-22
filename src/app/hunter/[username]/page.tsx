@@ -1,6 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 import { Shield, Medal, CheckCircle, Calendar, ShieldAlert } from "lucide-react";
 import Link from 'next/link';
+import React from 'react';
 
 // Simple server-side supabase client (read-only for public data)
 const supabase = createClient(
@@ -29,7 +30,7 @@ export default async function HunterProfile({ params }: { params: { username: st
     // If we don't have real DB plugged in yet, we'll provide fallback data
     const isMock = userError || viewError || !userData;
 
-    const rankIcons: Record<string, any> = {
+    const rankIcons: Record<string, React.ElementType> = {
         'Ascended Phoenix': Shield,
         'Inferno Hunter': ShieldAlert,
         'Phoenix Hunter': Shield,
@@ -75,6 +76,7 @@ export default async function HunterProfile({ params }: { params: { username: st
                 <div className="bg-[#111] border border-white/10 p-8 md:p-12 relative overflow-hidden flex flex-col md:flex-row items-center md:items-start gap-8 shadow-2xl">
                     <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-phoenix-light via-phoenix to-phoenix-dark" />
 
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                         src={avatar}
                         alt={username}

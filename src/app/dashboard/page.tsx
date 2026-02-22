@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Shield, FileWarning, ExternalLink } from "lucide-react";
+import { Shield, FileWarning } from "lucide-react";
 
 export default function Dashboard() {
     const [activeTab, setActiveTab] = useState("submit");
@@ -18,8 +18,8 @@ export default function Dashboard() {
                         <button
                             onClick={() => setActiveTab("submit")}
                             className={`p-4 text-left border font-mono text-sm transition-all flex items-center gap-3 ${activeTab === "submit"
-                                    ? "bg-phoenix/10 border-phoenix text-phoenix"
-                                    : "bg-[#111] border-white/5 text-white/50 hover:bg-white/5"
+                                ? "bg-phoenix/10 border-phoenix text-phoenix"
+                                : "bg-[#111] border-white/5 text-white/50 hover:bg-white/5"
                                 }`}
                         >
                             <FileWarning size={16} /> Submit Report
@@ -27,8 +27,8 @@ export default function Dashboard() {
                         <button
                             onClick={() => setActiveTab("history")}
                             className={`p-4 text-left border font-mono text-sm transition-all flex items-center gap-3 ${activeTab === "history"
-                                    ? "bg-phoenix/10 border-phoenix text-phoenix"
-                                    : "bg-[#111] border-white/5 text-white/50 hover:bg-white/5"
+                                ? "bg-phoenix/10 border-phoenix text-phoenix"
+                                : "bg-[#111] border-white/5 text-white/50 hover:bg-white/5"
                                 }`}
                         >
                             <Shield size={16} /> Report History

@@ -45,7 +45,7 @@ export default function DocArticle({ params }: { params: { slug: string } }) {
                         <pre><code>$ ssh student@lab.webphoenix.org -p 2222{'\n'}$ ./start_scenario --type={params.slug}</code></pre>
 
                         <blockquote>
-                            "Given the choice between dancing pigs and security, users will pick dancing pigs every time." - Bruce Schneier
+                            &quot;Given the choice between dancing pigs and security, users will pick dancing pigs every time.&quot; - Bruce Schneier
                         </blockquote>
                     </div>
                 </div>
