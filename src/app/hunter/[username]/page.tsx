@@ -13,7 +13,7 @@ const supabase = createClient(
 
 export default async function HunterProfile({ params }: { params: { username: string } }) {
     // Wait for params in Next 15 if applicable, but we assume Next 14 here based on setup.
-    const username = params.username;
+    const username = decodeURIComponent(params.username);
 
     // Fetch from bughunter_leaderboard view
     const { data: hunterStats } = await supabase
