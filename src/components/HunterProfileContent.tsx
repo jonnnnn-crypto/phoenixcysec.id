@@ -202,7 +202,7 @@ export default function HunterProfileContent({
     const profileDetails = Array.isArray(userData?.profiles) ? userData.profiles[0] : userData?.profiles;
     const skills = profileDetails?.skills || ["Web Hacking", "PythonScripting", "Linux Basics"];
     const bio = profileDetails?.bio || "An aspiring ethical hacker ready to secure the digital perimeter.";
-    const avatar = profileDetails?.avatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${username}`;
+    const avatar = profileDetails?.avatar || `https://api.dicebear.com/9.x/avataaars/svg?seed=${username}`;
     const githubLink = profileDetails?.github_url || null;
     const twitterLink = profileDetails?.twitter_url || null;
     const instagramLink = profileDetails?.instagram_url || null;

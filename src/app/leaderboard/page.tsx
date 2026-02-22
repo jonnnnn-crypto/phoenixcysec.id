@@ -176,12 +176,21 @@ export default function Leaderboard() {
                                                 </span>
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap">
-                                                <Link href={`/hunter/${hunter.username}`} className="flex items-center gap-3 group-hover:text-phoenix transition-colors">
-                                                    <div className={`w-8 h-8 rounded-md bg-charcoal border flex items-center justify-center ${isTop3 ? "border-phoenix/50" : "border-white/10"
+                                                <Link href={`/hunter/${hunter.username}`} className="flex items-center gap-3 group/hunter group-hover:text-phoenix transition-colors">
+                                                    <div className={`w-10 h-10 rounded-xl bg-charcoal border overflow-hidden flex items-center justify-center transition-all ${isTop3 ? "border-phoenix/50 ring-2 ring-phoenix/20" : "border-white/10"
                                                         }`}>
-                                                        <span className="font-display font-bold text-white/80">{hunter.username.charAt(0).toUpperCase()}</span>
+                                                        <Image
+                                                            src={`https://api.dicebear.com/9.x/avataaars/svg?seed=${hunter.username}`}
+                                                            alt={hunter.username}
+                                                            width={40}
+                                                            height={40}
+                                                            className="object-cover group-hover/hunter:scale-110 transition-transform duration-500"
+                                                        />
                                                     </div>
-                                                    <span className="font-medium text-white">{hunter.username}</span>
+                                                    <div className="flex flex-col">
+                                                        <span className="font-bold text-white group-hover/hunter:translate-x-1 transition-transform duration-300">{hunter.username}</span>
+                                                        <span className="text-[9px] font-mono text-white/30 tracking-tight uppercase">Authorized Hunter</span>
+                                                    </div>
                                                 </Link>
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap">
@@ -207,34 +216,34 @@ export default function Leaderboard() {
                                                 )}
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap">
-                                                <div className="flex gap-2 items-center">
+                                                <div className="flex gap-2.5 items-center">
                                                     {hunter.socials?.github && (
-                                                        <a href={`https://github.com/${hunter.socials.github.replace('https://github.com/', '')}`} target="_blank" rel="noopener noreferrer" className="text-white/40 hover:text-white transition-colors" title="GitHub">
-                                                            <Github size={16} />
+                                                        <a href={`https://github.com/${hunter.socials.github.replace('https://github.com/', '')}`} target="_blank" rel="noopener noreferrer" className="text-white/30 hover:text-white transition-all transform hover:scale-110" title="GitHub">
+                                                            <Github size={15} />
                                                         </a>
                                                     )}
                                                     {hunter.socials?.twitter && (
-                                                        <a href={`https://twitter.com/${hunter.socials.twitter.replace('https://twitter.com/', '').replace('https://x.com/', '')}`} target="_blank" rel="noopener noreferrer" className="text-white/40 hover:text-[#1DA1F2] transition-colors" title="Twitter/X">
-                                                            <Twitter size={16} />
+                                                        <a href={`https://twitter.com/${hunter.socials.twitter.replace('https://twitter.com/', '').replace('https://x.com/', '')}`} target="_blank" rel="noopener noreferrer" className="text-white/30 hover:text-phoenix transition-all transform hover:scale-110" title="Twitter/X">
+                                                            <Twitter size={15} />
                                                         </a>
                                                     )}
                                                     {hunter.socials?.linkedin && (
-                                                        <a href={hunter.socials.linkedin.startsWith('http') ? hunter.socials.linkedin : `https://${hunter.socials.linkedin}`} target="_blank" rel="noopener noreferrer" className="text-white/40 hover:text-blue-500 transition-colors" title="LinkedIn">
-                                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z" /><rect width="4" height="12" x="2" y="9" /><circle cx="4" cy="4" r="2" /></svg>
+                                                        <a href={hunter.socials.linkedin.startsWith('http') ? hunter.socials.linkedin : `https://${hunter.socials.linkedin}`} target="_blank" rel="noopener noreferrer" className="text-white/30 hover:text-blue-500 transition-all transform hover:scale-110" title="LinkedIn">
+                                                            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z" /><rect width="4" height="12" x="2" y="9" /><circle cx="4" cy="4" r="2" /></svg>
                                                         </a>
                                                     )}
                                                     {hunter.socials?.instagram && (
-                                                        <a href={hunter.socials.instagram.startsWith('http') ? hunter.socials.instagram : `https://${hunter.socials.instagram}`} target="_blank" rel="noopener noreferrer" className="text-white/40 hover:text-pink-500 transition-colors" title="Instagram">
-                                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="20" x="2" y="2" rx="5" ry="5" /><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" /><line x1="17.5" x2="17.51" y1="6.5" y2="6.5" /></svg>
+                                                        <a href={hunter.socials.instagram.startsWith('http') ? hunter.socials.instagram : `https://${hunter.socials.instagram}`} target="_blank" rel="noopener noreferrer" className="text-white/30 hover:text-pink-500 transition-all transform hover:scale-110" title="Instagram">
+                                                            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="20" x="2" y="2" rx="5" ry="5" /><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" /><line x1="17.5" x2="17.51" y1="6.5" y2="6.5" /></svg>
                                                         </a>
                                                     )}
                                                     {hunter.socials?.website && (
-                                                        <a href={hunter.socials.website.startsWith('http') ? hunter.socials.website : `https://${hunter.socials.website}`} target="_blank" rel="noopener noreferrer" className="text-white/40 hover:text-phoenix transition-colors" title="Website">
-                                                            <Globe size={16} />
+                                                        <a href={hunter.socials.website.startsWith('http') ? hunter.socials.website : `https://${hunter.socials.website}`} target="_blank" rel="noopener noreferrer" className="text-white/30 hover:text-emerald-400 transition-all transform hover:scale-110" title="Website">
+                                                            <Globe size={15} />
                                                         </a>
                                                     )}
                                                     {!(hunter.socials?.github || hunter.socials?.twitter || hunter.socials?.linkedin || hunter.socials?.instagram || hunter.socials?.website) && (
-                                                        <span className="text-white/20 font-mono text-xs">-</span>
+                                                        <span className="text-white/10 font-mono text-[10px] tracking-widest italic opacity-50">Private</span>
                                                     )}
                                                 </div>
                                             </td>
