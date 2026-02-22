@@ -1,12 +1,16 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Image from 'next/image';
+
 import { createClient } from "@/lib/supabase";
 import { User } from "@supabase/supabase-js";
-import { Shield, FileWarning, Activity, Search, Crosshair, AlertTriangle, CheckCircle, Clock, Save, User as UserIcon } from "lucide-react";
+import {
+    Shield, Activity, Search, Crosshair,
+    Clock, Save, User as UserIcon,
+    ChevronRight, Zap
+} from "lucide-react";
 import { useRouter } from "next/navigation";
-import { Award, Target, Hash } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 
 type Report = {
     id: string;
@@ -103,24 +107,19 @@ export default function Dashboard() {
                 fetchStats(userId)
             ]);
 
-            // Subscribe to real-time changes without filters for maximum reliability
             const channel = supabase
                 .channel(`dashboard-sync-${userId}`)
                 .on('postgres_changes', { event: '*', schema: 'public', table: 'whitehat_reports' }, (payload) => {
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    const newPayload = payload.new as any;
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    const oldPayload = payload.old as any;
+                    const newPayload = payload.new as any; // eslint-disable-line @typescript-eslint/no-explicit-any
+                    const oldPayload = payload.old as any; // eslint-disable-line @typescript-eslint/no-explicit-any
                     if (newPayload?.user_id === userId || oldPayload?.user_id === userId) {
                         fetchHistory(userId);
                         fetchStats(userId);
                     }
                 })
                 .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' }, (payload) => {
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    const newPayload = payload.new as any;
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    const oldPayload = payload.old as any;
+                    const newPayload = payload.new as any; // eslint-disable-line @typescript-eslint/no-explicit-any
+                    const oldPayload = payload.old as any; // eslint-disable-line @typescript-eslint/no-explicit-any
                     if (newPayload?.user_id === userId || oldPayload?.user_id === userId) {
                         fetchProfile(userId);
                     }
@@ -149,7 +148,7 @@ export default function Dashboard() {
             report_year: parseInt(year),
             reference_link: link,
             description: desc,
-            status: 'pending' // Default status
+            status: 'pending'
         }]).select();
 
         if (error) {
@@ -189,323 +188,320 @@ export default function Dashboard() {
     };
 
     return (
-        <div className="min-h-screen pt-32 pb-24 px-6 md:px-12 bg-[#020617] relative overflow-hidden">
-            {/* Ambient Backgrounds */}
-            <div className="absolute top-0 right-1/4 w-[800px] h-[800px] bg-phoenix/5 blur-[150px] rounded-full pointer-events-none" />
-            <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-blue-900/10 blur-[150px] rounded-full pointer-events-none" />
+        <div className="min-h-screen pt-32 pb-24 px-6 md:px-12 bg-[#050505] text-white selection:bg-phoenix/30">
+            {/* Minimal Texture Overlay */}
+            <div className="fixed inset-0 pointer-events-none opacity-[0.03] grayscale bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]" />
 
             <div className="max-w-7xl mx-auto relative z-10">
-                <div className="flex flex-col md:flex-row justify-between items-end mb-12">
+                <header className="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6">
                     <div>
-                        <div className="flex items-center gap-3 mb-2">
-                            <Activity className="text-phoenix" size={24} />
-                            <h1 className="font-display font-medium text-4xl text-white tracking-tight">Hunter Workspace</h1>
+                        <div className="inline-flex items-center gap-2 px-2 py-0.5 rounded border border-phoenix/20 bg-phoenix/5 text-phoenix text-[10px] font-mono tracking-widest uppercase mb-4">
+                            <Zap size={10} className="fill-phoenix" />
+                            Secure Node Connection
                         </div>
-                        <p className="font-mono text-xs text-phoenix uppercase tracking-widest flex items-center gap-2">
-                            <span className="w-2 h-2 rounded-full bg-phoenix animate-pulse" />
-                            Encrypted Sector - Level 4 Clearance
-                        </p>
+                        <h1 className="text-4xl md:text-5xl font-display font-bold uppercase tracking-tighter">
+                            Hunter <span className="text-phoenix">Workspace.</span>
+                        </h1>
                     </div>
-                </div>
+                    <div className="flex items-center gap-4 bg-white/5 border border-white/10 p-2 rounded-lg backdrop-blur-sm">
+                        <div className="px-4 py-2 border-r border-white/5">
+                            <div className="text-[10px] font-mono text-white/30 uppercase mb-1">Reputation</div>
+                            <div className="text-white font-mono font-bold text-sm tracking-tight">{stats.points} <span className="text-[10px] text-white/20">PTS</span></div>
+                        </div>
+                        <div className="px-4 py-2 text-center">
+                            <div className="text-[10px] font-mono text-white/30 uppercase mb-1">Status</div>
+                            <div className="flex items-center gap-2">
+                                <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+                                <span className="text-white font-mono font-bold text-[10px] uppercase">Active</span>
+                            </div>
+                        </div>
+                    </div>
+                </header>
 
-                <div className="flex flex-col lg:flex-row gap-8">
-                    {/* Sidebar Area */}
-                    <div className="w-full lg:w-[320px] flex flex-col gap-6">
+                <div className="flex flex-col lg:flex-row gap-8 items-start">
+                    {/* Tactical Sidebar */}
+                    <aside className="w-full lg:w-80 space-y-4 sticky top-32">
+                        {/* Minimal Profile Summary */}
+                        <div className="bg-[#0a0a0a] border border-white/10 p-6 rounded-xl relative overflow-hidden group">
+                            <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
+                                <Shield size={80} />
+                            </div>
 
-                        {/* Hunter Profile Card */}
-                        <div className="bg-[#0a0a0a]/80 border border-white/10 rounded-2xl p-6 backdrop-blur-xl relative overflow-hidden group">
-                            <div className="absolute top-0 right-0 w-32 h-32 bg-phoenix/10 rounded-full blur-[50px] pointer-events-none group-hover:bg-phoenix/20 transition-colors duration-500" />
-                            <div className="flex items-center gap-4 mb-6 relative z-10">
-                                <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-phoenix to-purple-900 border border-white/20 flex items-center justify-center shadow-[0_0_20px_rgba(59,130,246,0.2)]">
-                                    <UserIcon size={28} className="text-white drop-shadow-md" />
+                            <div className="flex items-center gap-4 mb-8">
+                                <div className="w-12 h-12 rounded border border-white/10 bg-white/5 flex items-center justify-center">
+                                    <UserIcon size={20} className="text-phoenix" />
                                 </div>
                                 <div>
-                                    <div className="text-white/50 font-mono text-xs uppercase tracking-widest mb-1">Operative</div>
-                                    <div className="text-xl text-white font-medium break-all">@{stats.username || 'Agent'}</div>
+                                    <h4 className="font-display font-bold text-white uppercase tracking-tight">@{stats.username || 'Agent'}</h4>
+                                    <div className="text-[10px] font-mono text-white/30 uppercase tracking-widest">{stats.rank}</div>
                                 </div>
                             </div>
 
-                            <div className="space-y-4 relative z-10">
-                                <div className="flex items-center justify-between border-b border-white/5 pb-4">
-                                    <div className="flex items-center gap-2 text-white/50 text-sm">
-                                        <Award size={16} className="text-phoenix" /> Rank
-                                    </div>
-                                    <div className={`flex items-center gap-2 px-2.5 py-1 text-xs font-mono uppercase tracking-wider rounded border ${stats.rank === 'Ascended Phoenix' ? 'bg-purple-500/10 text-purple-400 border-purple-500/30' :
-                                        stats.rank === 'Inferno Hunter' ? 'bg-red-500/10 text-red-500 border-red-500/30' :
-                                            stats.rank === 'Phoenix Hunter' ? 'bg-orange-500/10 text-orange-400 border-orange-500/30' :
-                                                stats.rank === 'Flame Hunter' ? 'bg-blue-500/10 text-blue-400 border-blue-500/30' :
-                                                    'bg-white/5 text-white/50 border-white/10'
-                                        }`}>
-                                        <Image
-                                            src={
-                                                stats.rank === 'Ascended Phoenix' ? '/rank-ascended.png' :
-                                                    stats.rank === 'Inferno Hunter' ? '/rank-inferno.png' :
-                                                        stats.rank === 'Phoenix Hunter' ? '/rank-phoenix.png' :
-                                                            stats.rank === 'Flame Hunter' ? '/rank-flame.png' :
-                                                                '/rank-ember.png'
-                                            }
-                                            alt={stats.rank}
-                                            width={16}
-                                            height={16}
-                                            className="object-contain"
-                                        />
-                                        {stats.rank}
-                                    </div>
-                                </div>
-                                <div className="flex items-center justify-between border-b border-white/5 pb-4">
-                                    <div className="flex items-center gap-2 text-white/50 text-sm">
-                                        <Hash size={16} className="text-phoenix" /> Reputation
-                                    </div>
-                                    <div className="text-white font-mono text-lg">{stats.points} <span className="text-xs text-white/40">pts</span></div>
-                                </div>
-                                <div className="flex items-center justify-between">
-                                    <div className="flex items-center gap-2 text-white/50 text-sm">
-                                        <Target size={16} className="text-phoenix" /> Approvals
-                                    </div>
-                                    <div className="text-white font-mono text-lg">{stats.total_reports}</div>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Navigation Menu */}
-                        <div className="flex flex-col gap-3">
-                            <button
-                                onClick={() => setActiveTab("submit")}
-                                className={`p-5 text-left font-mono text-sm transition-all flex items-center justify-between rounded-xl border backdrop-blur-md overflow-hidden relative group ${activeTab === "submit"
-                                    ? "bg-phoenix/10 border-phoenix/50 text-white shadow-[0_0_30px_rgba(59,130,246,0.15)]"
-                                    : "bg-white/5 border-white/10 text-white/50 hover:bg-white/10 hover:border-white/20"
-                                    }`}
-                            >
-                                {activeTab === "submit" && <div className="absolute left-0 top-0 w-1 h-full bg-phoenix" />}
-                                <div className="flex items-center gap-3">
-                                    <Crosshair size={18} className={activeTab === "submit" ? "text-phoenix" : ""} />
-                                    <span>Lodge Report</span>
-                                </div>
-                            </button>
-
-                            <button
-                                onClick={() => setActiveTab("history")}
-                                className={`p-5 text-left font-mono text-sm transition-all flex items-center justify-between rounded-xl border backdrop-blur-md overflow-hidden relative group ${activeTab === "history"
-                                    ? "bg-phoenix/10 border-phoenix/50 text-white shadow-[0_0_30px_rgba(59,130,246,0.15)]"
-                                    : "bg-white/5 border-white/10 text-white/50 hover:bg-white/10 hover:border-white/20"
-                                    }`}
-                            >
-                                {activeTab === "history" && <div className="absolute left-0 top-0 w-1 h-full bg-phoenix" />}
-                                <div className="flex items-center gap-3">
-                                    <Search size={18} className={activeTab === "history" ? "text-phoenix" : ""} />
-                                    <span>Audit Log</span>
-                                </div>
-                                <span className="bg-[#0a0a0a] text-xs px-2 py-1 rounded-md border border-white/10">{history.length}</span>
-                            </button>
-
-                            <button
-                                onClick={() => setActiveTab("profile")}
-                                className={`p-5 text-left font-mono text-sm transition-all flex items-center justify-between rounded-xl border backdrop-blur-md overflow-hidden relative group ${activeTab === "profile"
-                                    ? "bg-phoenix/10 border-phoenix/50 text-white shadow-[0_0_30px_rgba(59,130,246,0.15)]"
-                                    : "bg-white/5 border-white/10 text-white/50 hover:bg-white/10 hover:border-white/20"
-                                    }`}
-                            >
-                                {activeTab === "profile" && <div className="absolute left-0 top-0 w-1 h-full bg-phoenix" />}
-                                <div className="flex items-center gap-3">
-                                    <UserIcon size={18} className={activeTab === "profile" ? "text-phoenix" : ""} />
-                                    <span>Profile Settings</span>
-                                </div>
-                            </button>
-                        </div>
-                    </div>
-
-                    {/* Main Interface */}
-                    <div className="flex-1 bg-white/[0.02] border border-white/10 p-8 md:p-12 rounded-2xl shadow-2xl backdrop-blur-xl relative">
-                        <div className="absolute top-0 left-8 right-8 h-px bg-gradient-to-r from-transparent via-phoenix/50 to-transparent" />
-
-                        {activeTab === "submit" && (
-                            <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-                                <h2 className="text-2xl text-white font-medium mb-2 font-display">Vulnerability Intake Form</h2>
-                                <p className="text-white/40 font-mono text-sm mb-8">All transmissions are end-to-end encrypted. False reports will negatively impact your reputation.</p>
-
-                                <form onSubmit={handleSubmit} className="space-y-6">
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                        <div className="space-y-2">
-                                            <label className="block text-white/60 text-xs font-mono uppercase tracking-wider">Target Domain / Asset</label>
-                                            <input type="text" value={target} onChange={e => setTarget(e.target.value)} className="w-full bg-[#0a0a0a]/50 border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-phoenix focus:ring-1 focus:ring-phoenix/50 font-mono text-sm transition-all" placeholder="e.g. *.target.com" required />
+                            <nav className="space-y-1">
+                                {[
+                                    { id: "submit", label: "Lodge Report", icon: Crosshair },
+                                    { id: "history", label: "Audit Log", icon: Search, badge: history.length },
+                                    { id: "profile", label: "Agent Profile", icon: Settings },
+                                ].map((item) => (
+                                    <button
+                                        key={item.id}
+                                        onClick={() => setActiveTab(item.id)}
+                                        className={`w-full flex items-center justify-between p-3 rounded transition-all group ${activeTab === item.id
+                                            ? "bg-white text-black font-bold"
+                                            : "text-white/40 hover:text-white hover:bg-white/5"
+                                            }`}
+                                    >
+                                        <div className="flex items-center gap-3">
+                                            <item.icon size={16} className={activeTab === item.id ? "text-black" : "text-phoenix/60"} />
+                                            <span className="font-mono text-[11px] uppercase tracking-wider">{item.label}</span>
                                         </div>
-                                        <div className="space-y-2">
-                                            <label className="block text-white/60 text-xs font-mono uppercase tracking-wider">Target Organization Type</label>
-                                            <select value={targetType} onChange={e => setTargetType(e.target.value)} className="w-full bg-[#0a0a0a]/50 border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-phoenix focus:ring-1 focus:ring-phoenix/50 font-mono text-sm appearance-none transition-all">
-                                                <option value="Company">Private Company</option>
-                                                <option value="Government">Government Agency</option>
-                                                <option value="Educational">Educational Institution</option>
-                                                <option value="Open Source">Open Source Project</option>
-                                                <option value="Other">Other</option>
-                                            </select>
-                                        </div>
-                                    </div>
-
-                                    <div className="space-y-2">
-                                        <label className="block text-white/60 text-xs font-mono uppercase tracking-wider">Vulnerability Class</label>
-                                        <input type="text" value={vulnType} onChange={e => setVulnType(e.target.value)} className="w-full bg-[#0a0a0a]/50 border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-phoenix focus:ring-1 focus:ring-phoenix/50 font-mono text-sm transition-all" placeholder="e.g. Remote Code Execution" required />
-                                    </div>
-
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                        <div className="space-y-2">
-                                            <label className="block text-white/60 text-xs font-mono uppercase tracking-wider">Impact Severity</label>
-                                            <select value={severity} onChange={e => setSeverity(e.target.value)} className="w-full bg-[#0a0a0a]/50 border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-phoenix focus:ring-1 focus:ring-phoenix/50 font-mono text-sm appearance-none transition-all">
-                                                <option value="low">Low Risk (50 pts)</option>
-                                                <option value="medium">Medium Risk (100 pts)</option>
-                                                <option value="high">High Risk (200 pts)</option>
-                                                <option value="critical">Critical Risk (400 pts)</option>
-                                            </select>
-                                        </div>
-                                        <div className="space-y-2">
-                                            <label className="block text-white/60 text-xs font-mono uppercase tracking-wider">Discovery Year</label>
-                                            <input type="number" value={year} onChange={e => setYear(e.target.value)} className="w-full bg-[#0a0a0a]/50 border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-phoenix focus:ring-1 focus:ring-phoenix/50 font-mono text-sm transition-all" required />
-                                        </div>
-                                    </div>
-
-                                    <div className="space-y-2">
-                                        <label className="block text-white/60 text-xs font-mono uppercase tracking-wider">Proof of Concept (URL)</label>
-                                        <input type="url" value={link} onChange={e => setLink(e.target.value)} className="w-full bg-[#0a0a0a]/50 border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-phoenix focus:ring-1 focus:ring-phoenix/50 font-mono text-sm transition-all" placeholder="https://..." required />
-                                    </div>
-
-                                    <div className="space-y-2">
-                                        <label className="block text-white/60 text-xs font-mono uppercase tracking-wider">Executive Summary</label>
-                                        <textarea rows={4} value={desc} onChange={e => setDesc(e.target.value)} className="w-full bg-[#0a0a0a]/50 border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-phoenix focus:ring-1 focus:ring-phoenix/50 font-mono text-sm resize-none transition-all" placeholder="Briefly describe how this vulnerability can be exploited..." required />
-                                    </div>
-
-                                    <button disabled={isSubmitting} type="submit" className="w-full md:w-auto px-8 py-4 mt-4 bg-phoenix hover:bg-phoenix-light text-white rounded-lg font-mono uppercase tracking-widest text-sm font-bold transition-all shadow-[0_0_20px_rgba(59,130,246,0.3)] disabled:opacity-50 flex justify-center items-center">
-                                        {isSubmitting ? 'Transmitting...' : 'Initiate Secure Transfer'}
+                                        {item.badge !== undefined && (
+                                            <span className={`text-[9px] font-mono px-1.5 py-0.5 rounded ${activeTab === item.id ? "bg-black/10 text-black" : "bg-white/5 text-white/30"}`}>
+                                                {item.badge}
+                                            </span>
+                                        )}
                                     </button>
-                                </form>
+                                ))}
+                            </nav>
+                        </div>
+
+                        <div className="p-4 border border-white/5 bg-[#0a0a0a]/50 rounded-xl">
+                            <div className="text-[9px] font-mono text-white/20 uppercase tracking-[0.2em] mb-4">Core Statistics</div>
+                            <div className="space-y-3">
+                                <div className="flex justify-between items-center text-[11px] font-mono text-white/60">
+                                    <span>Verified Exploits</span>
+                                    <span className="text-white font-bold">{stats.total_reports}</span>
+                                </div>
+                                <div className="w-full h-1 bg-white/5 rounded-full overflow-hidden">
+                                    <div className="h-full bg-phoenix" style={{ width: `${Math.min(100, (stats.points / 1000) * 100)}%` }} />
+                                </div>
                             </div>
-                        )}
+                        </div>
+                    </aside>
 
-                        {activeTab === "history" && (
-                            <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-                                <h2 className="text-2xl text-white font-medium mb-8 font-display">Intelligence Audit Log</h2>
-
-                                {history.length === 0 ? (
-                                    <div className="py-16 text-center border border-dashed border-white/10 rounded-xl bg-white/[0.01]">
-                                        <Shield className="mx-auto text-white/20 mb-4" size={48} />
-                                        <p className="text-white/40 font-mono text-sm uppercase tracking-widest">No intelligence gathered yet.</p>
+                    {/* Operational Interface */}
+                    <div className="flex-1 min-h-[600px] w-full bg-[#0a0a0a] border border-white/10 rounded-2xl overflow-hidden relative">
+                        <AnimatePresence mode="wait">
+                            {activeTab === "submit" && (
+                                <motion.div
+                                    key="submit"
+                                    initial={{ opacity: 0, x: 10 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    exit={{ opacity: 0, x: -10 }}
+                                    className="p-8 md:p-12"
+                                >
+                                    <div className="mb-10">
+                                        <h2 className="text-2xl font-display font-bold uppercase tracking-tight mb-2">Vulnerability Triage</h2>
+                                        <p className="text-white/40 font-mono text-xs uppercase tracking-widest leading-relaxed max-w-xl">
+                                            Submit identified vulnerabilities for evaluation. Protocol requires valid proof-of-concept for point allocation.
+                                        </p>
                                     </div>
-                                ) : (
-                                    <div className="space-y-3">
-                                        {/* Header Row (Desktop Only) */}
-                                        <div className="hidden md:grid grid-cols-12 gap-4 px-6 py-3 border-b border-white/10 text-white/40 font-mono text-xs uppercase tracking-wider">
-                                            <div className="col-span-1">Risk</div>
-                                            <div className="col-span-4">Target / Title</div>
-                                            <div className="col-span-3">Vulnerability Class</div>
-                                            <div className="col-span-2 text-center">Filed On</div>
-                                            <div className="col-span-2 text-right">Status</div>
+
+                                    <form onSubmit={handleSubmit} className="space-y-8">
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                            <Field label="Target Domain / Asset" required>
+                                                <input type="text" value={target} onChange={e => setTarget(e.target.value)} className="input-technical" placeholder="*.target.com" required />
+                                            </Field>
+                                            <Field label="Target Classification">
+                                                <select value={targetType} onChange={e => setTargetType(e.target.value)} className="input-technical appearance-none">
+                                                    <option value="Company">Private Entity</option>
+                                                    <option value="Government">Digital Infrastructure</option>
+                                                    <option value="Educational">Academic Node</option>
+                                                    <option value="Open Source">OSS Repository</option>
+                                                    <option value="Other">Unclassified</option>
+                                                </select>
+                                            </Field>
                                         </div>
 
-                                        {history.map(report => (
-                                            <div key={report.id} className="group relative overflow-hidden bg-[#0a0a0a]/50 border border-white/5 hover:border-white/20 hover:bg-white/[0.02] rounded-xl transition-all p-5 md:py-4 md:px-6">
-                                                <div className="absolute left-0 top-0 bottom-0 w-1 bg-transparent group-hover:bg-phoenix/50 transition-colors" />
+                                        <Field label="Vulnerability Vector" required>
+                                            <input type="text" value={vulnType} onChange={e => setVulnType(e.target.value)} className="input-technical" placeholder="e.g. Remote Code Execution (RCE)" required />
+                                        </Field>
 
-                                                <div className="flex flex-col md:grid md:grid-cols-12 md:items-center gap-4 md:gap-4">
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                            <Field label="Impact Level Assessment">
+                                                <select value={severity} onChange={e => setSeverity(e.target.value)} className="input-technical appearance-none">
+                                                    <option value="low">Low Impact (50 pts)</option>
+                                                    <option value="medium">Medium Impact (100 pts)</option>
+                                                    <option value="high">High Impact (200 pts)</option>
+                                                    <option value="critical">Critical Impact (400 pts)</option>
+                                                </select>
+                                            </Field>
+                                            <Field label="Analysis Year">
+                                                <input type="number" value={year} onChange={e => setYear(e.target.value)} className="input-technical" required />
+                                            </Field>
+                                        </div>
 
-                                                    {/* Risk Level */}
-                                                    <div className="md:col-span-1 flex items-center">
-                                                        <span className={`px-2 py-1 rounded text-[10px] font-mono uppercase font-bold tracking-wider ${report.severity === 'critical' ? 'bg-red-500/10 text-red-500 border border-red-500/20' :
-                                                            report.severity === 'high' ? 'bg-orange-500/10 text-orange-400 border border-orange-500/20' :
-                                                                report.severity === 'medium' ? 'bg-yellow-500/10 text-yellow-500 border border-yellow-500/20' :
-                                                                    'bg-blue-500/10 text-blue-400 border border-blue-500/20'
+                                        <Field label="Technical Evidence Link (PoC)" required>
+                                            <input type="url" value={link} onChange={e => setLink(e.target.value)} className="input-technical text-phoenix/70" placeholder="https://evidence.vault/..." required />
+                                        </Field>
+
+                                        <Field label="Executive Summary">
+                                            <textarea rows={4} value={desc} onChange={e => setDesc(e.target.value)} className="input-technical resize-none pt-4" placeholder="Brief technical summary of findings..." required />
+                                        </Field>
+
+                                        <button
+                                            disabled={isSubmitting}
+                                            type="submit"
+                                            className="px-10 py-4 bg-white text-black hover:bg-phoenix hover:text-white font-mono text-xs font-bold uppercase tracking-[0.2em] transition-all disabled:opacity-50 flex items-center gap-3"
+                                        >
+                                            {isSubmitting ? <Loader2 size={14} className="animate-spin" /> : <ChevronRight size={14} />}
+                                            Commit Transfer
+                                        </button>
+                                    </form>
+                                </motion.div>
+                            )}
+
+                            {activeTab === "history" && (
+                                <motion.div
+                                    key="history"
+                                    initial={{ opacity: 0, x: 10 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    className="p-8 md:p-12"
+                                >
+                                    <div className="mb-10 flex justify-between items-end">
+                                        <div>
+                                            <h2 className="text-2xl font-display font-bold uppercase tracking-tight mb-2">Audit Intelligence</h2>
+                                            <p className="text-white/40 font-mono text-xs uppercase tracking-widest">Historical submission records</p>
+                                        </div>
+                                        <div className="text-[10px] font-mono text-white/20 uppercase">{history.length} Logs found</div>
+                                    </div>
+
+                                    {history.length === 0 ? (
+                                        <div className="py-24 text-center border border-dashed border-white/10 rounded-xl">
+                                            <p className="font-mono text-xs text-white/20 uppercase tracking-widest">No intelligence gathered yet.</p>
+                                        </div>
+                                    ) : (
+                                        <div className="space-y-[1px] bg-white/5 border border-white/5">
+                                            {history.map(report => (
+                                                <div key={report.id} className="bg-[#0a0a0a] p-5 flex flex-col md:grid md:grid-cols-12 md:items-center gap-4 group transition-colors hover:bg-white/[0.02]">
+                                                    <div className="md:col-span-1">
+                                                        <span className={`px-2 py-0.5 rounded-[2px] text-[9px] font-mono font-bold uppercase tracking-widest border ${report.severity === 'critical' ? 'bg-red-500/10 text-red-500 border-red-500/20' :
+                                                            report.severity === 'high' ? 'bg-orange-500/10 text-orange-500 border-orange-500/20' : 'bg-blue-500/10 text-blue-500 border-blue-500/20'
                                                             }`}>
                                                             {report.severity.substring(0, 4)}
                                                         </span>
                                                     </div>
-
-                                                    {/* Target & Title */}
-                                                    <div className="md:col-span-4">
-                                                        <div className="flex items-center gap-2 mb-1">
-                                                            <h3 className="text-white font-medium text-sm md:text-base truncate" title={report.target}>{report.target}</h3>
-                                                            {report.target_type && (
-                                                                <span className="text-white/30 text-[9px] font-mono border border-white/10 px-1.5 py-0.5 rounded tracking-wider uppercase hidden md:inline-block">
-                                                                    {report.target_type}
-                                                                </span>
-                                                            )}
-                                                        </div>
-                                                        <p className="text-white/40 font-mono text-xs line-clamp-1 block md:hidden mb-2">{report.vulnerability}</p>
+                                                    <div className="md:col-span-5">
+                                                        <div className="text-sm font-bold truncate group-hover:text-phoenix transition-colors">{report.target}</div>
+                                                        <div className="text-[10px] font-mono text-white/30 uppercase mt-1">{report.vulnerability}</div>
                                                     </div>
-
-                                                    {/* Vulnerability Class (Desktop) */}
-                                                    <div className="hidden md:block md:col-span-3 text-white/50 font-mono text-xs truncate" title={report.vulnerability}>
-                                                        {report.vulnerability}
+                                                    <div className="md:col-span-3 text-[10px] font-mono text-white/20 uppercase flex items-center gap-2">
+                                                        <Clock size={10} /> {new Date(report.created_at).toLocaleDateString()}
                                                     </div>
-
-                                                    {/* Filed On */}
-                                                    <div className="md:col-span-2 flex items-center md:justify-center text-white/50 font-mono text-xs gap-2">
-                                                        <Clock size={12} className="text-white/30" />
-                                                        {new Date(report.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
-                                                    </div>
-
-                                                    {/* Status */}
-                                                    <div className="md:col-span-2 flex justify-start md:justify-end">
-                                                        {report.status === 'approved' ? (
-                                                            <div className="inline-flex items-center gap-1.5 text-green-400 bg-green-400/10 border border-green-400/20 px-2.5 py-1 rounded font-mono text-[10px] uppercase tracking-wider">
-                                                                <CheckCircle size={12} /> Approved
-                                                            </div>
-                                                        ) : report.status === 'rejected' ? (
-                                                            <div className="inline-flex items-center gap-1.5 text-red-400 bg-red-400/10 border border-red-400/20 px-2.5 py-1 rounded font-mono text-[10px] uppercase tracking-wider">
-                                                                <AlertTriangle size={12} /> Rejected
-                                                            </div>
-                                                        ) : (
-                                                            <div className="inline-flex items-center gap-1.5 text-white/60 bg-white/5 border border-white/10 px-2.5 py-1 rounded font-mono text-[10px] uppercase tracking-wider">
-                                                                <FileWarning size={12} /> Pending
-                                                            </div>
-                                                        )}
+                                                    <div className="md:col-span-3 flex justify-start md:justify-end">
+                                                        <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full font-mono text-[9px] uppercase tracking-widest ${report.status === 'approved' ? 'bg-green-500/10 text-green-500' :
+                                                            report.status === 'rejected' ? 'bg-red-500/10 text-red-500' : 'bg-white/5 text-white/40'
+                                                            }`}>
+                                                            <div className={`w-1 h-1 rounded-full ${report.status === 'approved' ? 'bg-green-500' :
+                                                                report.status === 'rejected' ? 'bg-red-500' : 'bg-white/40'
+                                                                }`} />
+                                                            {report.status}
+                                                        </span>
                                                     </div>
                                                 </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                )}
-                            </div>
-                        )}
-
-                        {activeTab === "profile" && (
-                            <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-                                <h2 className="text-2xl text-white font-medium mb-2 font-display">Hunter Profile Card</h2>
-                                <p className="text-white/40 font-mono text-sm mb-8">Customize your public footprint on the White Hat Leaderboard.</p>
-
-                                <form onSubmit={handleUpdateProfile} className="space-y-6">
-                                    <div className="space-y-2">
-                                        <label className="block text-white/60 text-xs font-mono uppercase tracking-wider">Bio / Signature Statement</label>
-                                        <textarea rows={3} value={bio} onChange={e => setBio(e.target.value)} className="w-full bg-[#0a0a0a]/50 border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-phoenix focus:ring-1 focus:ring-phoenix/50 font-mono text-sm resize-none transition-all" placeholder="Tell the world who you are..." />
-                                    </div>
-
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                        <div className="space-y-2">
-                                            <label className="block text-white/60 text-xs font-mono uppercase tracking-wider">GitHub Username</label>
-                                            <input type="text" value={github} onChange={e => setGithub(e.target.value)} className="w-full bg-[#0a0a0a]/50 border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-phoenix focus:ring-1 focus:ring-phoenix/50 font-mono text-sm transition-all" placeholder="octocat" />
+                                            ))}
                                         </div>
-                                        <div className="space-y-2">
-                                            <label className="block text-white/60 text-xs font-mono uppercase tracking-wider">Twitter/X Username</label>
-                                            <input type="text" value={twitter} onChange={e => setTwitter(e.target.value)} className="w-full bg-[#0a0a0a]/50 border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-phoenix focus:ring-1 focus:ring-phoenix/50 font-mono text-sm transition-all" placeholder="zsec_" />
-                                        </div>
+                                    )}
+                                </motion.div>
+                            )}
+
+                            {activeTab === "profile" && (
+                                <motion.div
+                                    key="profile"
+                                    initial={{ opacity: 0, x: 10 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    className="p-8 md:p-12"
+                                >
+                                    <div className="mb-10">
+                                        <h2 className="text-2xl font-display font-bold uppercase tracking-tight mb-2">Agent Fingerprint</h2>
+                                        <p className="text-white/40 font-mono text-xs uppercase tracking-widest">Manage your public operational identity.</p>
                                     </div>
 
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                        <div className="space-y-2">
-                                            <label className="block text-white/60 text-xs font-mono uppercase tracking-wider">Instagram URL</label>
-                                            <input type="url" value={instagram} onChange={e => setInstagram(e.target.value)} className="w-full bg-[#0a0a0a]/50 border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-phoenix focus:ring-1 focus:ring-phoenix/50 font-mono text-sm transition-all" placeholder="https://instagram.com/zsec" />
-                                        </div>
-                                        <div className="space-y-2">
-                                            <label className="block text-white/60 text-xs font-mono uppercase tracking-wider">Personal Website / Blog</label>
-                                            <input type="url" value={website} onChange={e => setWebsite(e.target.value)} className="w-full bg-[#0a0a0a]/50 border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-phoenix focus:ring-1 focus:ring-phoenix/50 font-mono text-sm transition-all" placeholder="https://hunter-domain.com" />
-                                        </div>
-                                    </div>
+                                    <form onSubmit={handleUpdateProfile} className="space-y-8">
+                                        <Field label="Operative Signature (Bio)">
+                                            <textarea rows={3} value={bio} onChange={e => setBio(e.target.value)} className="input-technical resize-none pt-4" placeholder="Tell the world who you are..." />
+                                        </Field>
 
-                                    <button disabled={isSavingProfile} type="submit" className="w-full md:w-auto px-8 py-4 mt-4 bg-white/5 hover:bg-white/10 text-white border border-white/10 rounded-lg font-mono uppercase tracking-widest text-sm transition-all disabled:opacity-50 flex justify-center items-center gap-2">
-                                        {isSavingProfile ? 'Saving...' : <><Save size={18} /> Update Profile</>}
-                                    </button>
-                                </form>
-                            </div>
-                        )}
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                            <Field label="GitHub Node">
+                                                <input type="text" value={github} onChange={e => setGithub(e.target.value)} className="input-technical" placeholder="octocat" />
+                                            </Field>
+                                            <Field label="Twitter / X Alias">
+                                                <input type="text" value={twitter} onChange={e => setTwitter(e.target.value)} className="input-technical" placeholder="zsec_" />
+                                            </Field>
+                                        </div>
+
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                            <Field label="Instagram Portal">
+                                                <input type="url" value={instagram} onChange={e => setInstagram(e.target.value)} className="input-technical" placeholder="https://instagram.com/..." />
+                                            </Field>
+                                            <Field label="Operational Website">
+                                                <input type="url" value={website} onChange={e => setWebsite(e.target.value)} className="input-technical" placeholder="https://hunter-domain.com" />
+                                            </Field>
+                                        </div>
+
+                                        <button
+                                            disabled={isSavingProfile}
+                                            type="submit"
+                                            className="px-10 py-4 bg-white/5 hover:bg-phoenix hover:text-white border border-white/10 text-white font-mono text-xs font-bold uppercase tracking-[0.2em] transition-all disabled:opacity-50 flex items-center gap-3"
+                                        >
+                                            {isSavingProfile ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
+                                            Synchronize Profile
+                                        </button>
+                                    </form>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
                     </div>
                 </div>
             </div>
+
+            <style jsx>{`
+                .input-technical {
+                    width: 100%;
+                    background: transparent;
+                    border: 1px solid rgba(255, 255, 255, 0.1);
+                    border-radius: 4px;
+                    padding: 0.75rem 1rem;
+                    color: white;
+                    font-family: var(--font-mono), monospace;
+                    font-size: 0.8rem;
+                    outline: none;
+                    transition: all 0.2s ease;
+                }
+                .input-technical:focus {
+                    border-color: #3b82f6;
+                    background: rgba(59, 130, 246, 0.02);
+                }
+                .label-technical {
+                    display: block;
+                    font-size: 9px;
+                    font-family: var(--font-mono), monospace;
+                    text-transform: uppercase;
+                    letter-spacing: 0.2em;
+                    color: rgba(255, 255, 255, 0.3);
+                    margin-bottom: 0.5rem;
+                }
+            `}</style>
         </div>
     );
+}
+
+function Field({ label, children, required }: { label: string, children: React.ReactNode, required?: boolean }) {
+    return (
+        <div className="space-y-2">
+            <label className="label-technical">
+                {label} {required && <span className="text-phoenix/50">*</span>}
+            </label>
+            {children}
+        </div>
+    );
+}
+
+function Loader2({ size, className }: { size: number, className?: string }) {
+    return <Activity size={size} className={`animate-spin ${className}`} />;
+}
+
+function Settings({ size, className }: { size: number, className?: string }) {
+    return <UserIcon size={size} className={className} />;
 }
