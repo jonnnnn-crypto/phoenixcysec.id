@@ -202,15 +202,9 @@ export default function About() {
                                 },
                                 {
                                     year: "2026",
-                                    title: "Ekspansi Lab",
-                                    desc: "Peluncuran platform CTF mandiri dan kolaborasi dengan berbagai instansi untuk simulasi serangan siber nyata.",
+                                    title: "Keberhasilan Komunitas",
+                                    desc: "Berhasil membangun komunitas yang tangguh serta membimbing para member hingga mendapatkan apresiasi baik di dalam negeri maupun luar negeri.",
                                     side: "right"
-                                },
-                                {
-                                    year: "2027",
-                                    title: "Standar Nasional",
-                                    desc: "Membangun ekosistem profesional siber yang diakui secara nasional sebagai penyedia talenta berkualitas.",
-                                    side: "left"
                                 }
                             ].map((item, i) => (
                                 <div key={i} className={`relative flex flex-col md:flex-row items-center ${item.side === 'right' ? 'md:flex-row-reverse' : ''} timeline-item`}>
