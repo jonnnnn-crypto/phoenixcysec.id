@@ -14,7 +14,7 @@ export default async function HunterProfile({ params }: { params: { username: st
     const username = params.username;
 
     // Fetch from bughunter_leaderboard view
-    const { data: hunterStats, error: viewError } = await supabase
+    const { data: hunterStats } = await supabase
         .from('bughunter_leaderboard')
         .select('*')
         .eq('username', username)
@@ -23,12 +23,30 @@ export default async function HunterProfile({ params }: { params: { username: st
     // Fetch basic user profile info joining users & profiles
     const { data: userData, error: userError } = await supabase
         .from('users')
-        .select('created_at, profiles(avatar, bio, skills, github_url, twitter_url, website_url)')
+        .select(`
+            id,
+            created_at, 
+            profiles (avatar, bio, skills, github_url, twitter_url, instagram_url, linkedin_url, website_url)
+        `)
         .eq('username', username)
         .single();
 
+    // Fetch Recent Approved Reports for this specific user
+    let recentReports = [];
+    if (userData?.id) {
+        const { data: reports } = await supabase
+            .from('whitehat_reports')
+            .select('*')
+            .eq('user_id', userData.id)
+            .eq('status', 'approved')
+            .order('created_at', { ascending: false })
+            .limit(5);
+
+        recentReports = reports || [];
+    }
+
     // If we don't have real DB plugged in yet, we'll provide fallback data
-    const isMock = userError || viewError || !userData;
+    const isMock = userError || !userData;
 
     const rankIcons: Record<string, React.ElementType> = {
         'Ascended Phoenix': Shield,
@@ -50,6 +68,8 @@ export default async function HunterProfile({ params }: { params: { username: st
     const avatar = profileDetails?.avatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${username}`;
     const githubLink = profileDetails?.github_url || null;
     const twitterLink = profileDetails?.twitter_url || null;
+    const instagramLink = profileDetails?.instagram_url || null;
+    const linkedinLink = profileDetails?.linkedin_url || null;
     const websiteLink = profileDetails?.website_url || null;
 
     const RankIcon = rankIcons[rank] || Shield;
@@ -108,8 +128,8 @@ export default async function HunterProfile({ params }: { params: { username: st
                         </div>
 
                         {/* Social Links */}
-                        {(githubLink || twitterLink || websiteLink) && (
-                            <div className="mt-6 flex gap-3">
+                        {(githubLink || twitterLink || instagramLink || linkedinLink || websiteLink) && (
+                            <div className="mt-6 flex flex-wrap gap-3 justify-center md:justify-start">
                                 {githubLink && (
                                     <a href={`https://github.com/${githubLink.replace('https://github.com/', '')}`} target="_blank" rel="noopener noreferrer" className="p-2 bg-charcoal border border-white/10 text-white/50 hover:text-white hover:border-phoenix/50 transition-all rounded-lg">
                                         <Github size={18} />
@@ -118,6 +138,17 @@ export default async function HunterProfile({ params }: { params: { username: st
                                 {twitterLink && (
                                     <a href={`https://twitter.com/${twitterLink.replace('https://twitter.com/', '').replace('https://x.com/', '')}`} target="_blank" rel="noopener noreferrer" className="p-2 bg-charcoal border border-white/10 text-white/50 hover:text-[#1DA1F2] hover:border-[#1DA1F2]/50 transition-all rounded-lg">
                                         <Twitter size={18} />
+                                    </a>
+                                )}
+                                {instagramLink && (
+                                    <a href={instagramLink.startsWith('http') ? instagramLink : `https://${instagramLink}`} target="_blank" rel="noopener noreferrer" className="p-2 bg-charcoal border border-white/10 text-white/50 hover:text-pink-500 hover:border-pink-500/50 transition-all rounded-lg">
+                                        {/* Lucide Instagram icon shorthand fallback using a visually similar circle representation because not imported, using custom SVG via JSX */}
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-instagram"><rect width="20" height="20" x="2" y="2" rx="5" ry="5" /><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" /><line x1="17.5" x2="17.51" y1="6.5" y2="6.5" /></svg>
+                                    </a>
+                                )}
+                                {linkedinLink && (
+                                    <a href={linkedinLink.startsWith('http') ? linkedinLink : `https://${linkedinLink}`} target="_blank" rel="noopener noreferrer" className="p-2 bg-charcoal border border-white/10 text-white/50 hover:text-blue-500 hover:border-blue-500/50 transition-all rounded-lg">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-linkedin"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z" /><rect width="4" height="12" x="2" y="9" /><circle cx="4" cy="4" r="2" /></svg>
                                     </a>
                                 )}
                                 {websiteLink && (
@@ -171,27 +202,29 @@ export default async function HunterProfile({ params }: { params: { username: st
                             </div>
 
                             <div className="space-y-4">
-                                {reports > 0 ? (
-                                    // Mock reports since we don't fetch individual ones cleanly without a separate query
-                                    [1, 2].slice(0, reports).map((i) => (
-                                        <div key={i} className="group p-4 border border-white/5 bg-charcoal hover:border-phoenix/30 transition-colors flex items-center justify-between">
+                                {recentReports.length > 0 ? (
+                                    recentReports.map((report) => (
+                                        <div key={report.id} className="group p-4 border border-white/5 bg-charcoal hover:border-phoenix/30 transition-colors flex flex-col md:flex-row md:items-center justify-between gap-4">
                                             <div>
                                                 <div className="flex items-center gap-2 mb-1">
-                                                    <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
-                                                    <span className="font-mono text-xs text-white/50 uppercase">Critical Vulnerability</span>
+                                                    <span className={`w-2 h-2 rounded-full ${report.severity === 'critical' ? 'bg-red-500 animate-pulse' :
+                                                        report.severity === 'high' ? 'bg-orange-500' :
+                                                            report.severity === 'medium' ? 'bg-yellow-500' : 'bg-blue-500'
+                                                        }`} />
+                                                    <span className="font-mono text-[10px] text-white/50 uppercase tracing-wider">{report.severity} Vulnerability</span>
                                                 </div>
-                                                <h4 className="font-medium text-white group-hover:text-phoenix transition-colors">RCE via Authenticated File Upload</h4>
+                                                <h4 className="font-medium text-white group-hover:text-phoenix transition-colors text-sm line-clamp-1 truncate" title={report.vulnerability}>{report.vulnerability}</h4>
                                             </div>
-                                            <div className="text-right">
-                                                <div className="font-mono text-phoenix text-sm font-bold">+400 pts</div>
-                                                <div className="font-mono text-[10px] text-white/30">Target Confused</div>
+                                            <div className="md:text-right flex items-center md:items-end justify-between md:flex-col mt-2 md:mt-0 pt-2 md:pt-0 border-t border-white/10 md:border-none">
+                                                <div className="font-mono text-phoenix text-sm font-bold">+{report.points} pts</div>
+                                                <div className="font-mono text-[10px] text-white/30 truncate max-w-[150px]" title={report.target}>{report.target}</div>
                                             </div>
                                         </div>
                                     ))
                                 ) : (
                                     <div className="p-8 text-center border border-dashed border-white/10 flex flex-col items-center">
                                         <Medal size={32} className="text-white/10 mb-4" />
-                                        <p className="text-white/40 font-mono text-sm uppercase">No reports published yet</p>
+                                        <p className="text-white/40 font-mono text-sm uppercase">No verified reports yet</p>
                                     </div>
                                 )}
                             </div>
