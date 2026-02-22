@@ -431,9 +431,12 @@ export default function Dashboard() {
                                             </Field>
                                         </div>
 
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                                            <Field label="LinkedIn Node">
+                                                <input type="text" value={linkedin} onChange={e => setLinkedin(e.target.value)} className="input-technical" placeholder="username" />
+                                            </Field>
                                             <Field label="Instagram Portal">
-                                                <input type="url" value={instagram} onChange={e => setInstagram(e.target.value)} className="input-technical" placeholder="https://instagram.com/..." />
+                                                <input type="text" value={instagram} onChange={e => setInstagram(e.target.value)} className="input-technical" placeholder="username" />
                                             </Field>
                                             <Field label="Operational Website">
                                                 <input type="url" value={website} onChange={e => setWebsite(e.target.value)} className="input-technical" placeholder="https://hunter-domain.com" />
