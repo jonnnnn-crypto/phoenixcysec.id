@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { createClient } from '@/lib/supabase';
 import Link from 'next/link';
-import { Shield, ShieldAlert, Crown, Flame, Zap, Trophy } from "lucide-react";
+import { Shield, ShieldAlert, Crown, Flame, Zap, Trophy, Github, Twitter, Globe, FileWarning } from "lucide-react";
 import React from 'react';
 
 type Hunter = {
@@ -11,6 +11,17 @@ type Hunter = {
     total_points: number;
     total_reports: number;
     rank: string;
+    socials?: {
+        github?: string;
+        twitter?: string;
+        instagram?: string;
+        linkedin?: string;
+        website?: string;
+    };
+    latestReport?: {
+        vulnerability: string;
+        severity: string;
+    } | null;
 };
 
 export default function Leaderboard() {
@@ -18,14 +29,59 @@ export default function Leaderboard() {
     const supabase = createClient();
 
     const fetchLeaderboard = async () => {
-        const { data, error } = await supabase
+        const { data: lbData, error: lbError } = await supabase
             .from('bughunter_leaderboard')
             .select('*')
             .order('total_points', { ascending: false });
 
-        if (!error && data) {
-            setHunters(data as Hunter[]);
-        }
+        if (lbError || !lbData) return;
+
+        const usernames = lbData.map((h: { username: string }) => h.username);
+
+        // Fetch user profiles & recent reports to enrich the leaderboard
+        const { data: usersData } = await supabase
+            .from('users')
+            .select(`
+                username,
+                profiles (github_url, twitter_url, instagram_url, linkedin_url, website_url),
+                whitehat_reports (vulnerability, severity, status, created_at)
+            `)
+            .in('username', usernames);
+
+        const enrichedHunters: Hunter[] = lbData.map((hunter: { username: string, total_points: number, total_reports: number, rank: string }) => {
+            const userExtra = usersData?.find(u => u.username === hunter.username);
+            const profiles = userExtra?.profiles;
+            const profile = Array.isArray(profiles) ? profiles[0] : profiles;
+
+            // Filter only approved reports and find the latest one
+            type RawReport = { status: string; vulnerability: string; severity: string; created_at: string };
+            const rawReports = (userExtra?.whitehat_reports || []) as RawReport[];
+            const approvedReports = rawReports
+                .filter(r => r.status === 'approved')
+                .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+
+            let latestReport = null;
+            if (approvedReports.length > 0) {
+                latestReport = {
+                    vulnerability: approvedReports[0].vulnerability,
+                    severity: approvedReports[0].severity,
+                };
+            }
+
+            return {
+                ...hunter,
+                socials: {
+                    github: profile?.github_url,
+                    twitter: profile?.twitter_url,
+                    instagram: profile?.instagram_url,
+                    linkedin: profile?.linkedin_url,
+                    website: profile?.website_url,
+                },
+                latestReport
+            };
+        });
+
+        setHunters(enrichedHunters);
     };
 
     useEffect(() => {
@@ -93,7 +149,9 @@ export default function Leaderboard() {
                                     <th className="px-6 py-4 font-medium">Rank</th>
                                     <th className="px-6 py-4 font-medium">Hunter</th>
                                     <th className="px-6 py-4 font-medium">Title</th>
-                                    <th className="px-6 py-4 font-medium text-center">Approved Reports</th>
+                                    <th className="px-6 py-4 font-medium">Latest Intel</th>
+                                    <th className="px-6 py-4 font-medium">Comms</th>
+                                    <th className="px-6 py-4 font-medium text-center">Approved</th>
                                     <th className="px-6 py-4 font-medium text-right text-phoenix">Reputation Pts</th>
                                 </tr>
                             </thead>
@@ -127,6 +185,54 @@ export default function Leaderboard() {
                                                 <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-sm border bg-[#0a0a0a] text-[10px] font-mono uppercase tracking-wider font-bold transition-all ${config.bg} ${config.color}`}>
                                                     <Icon size={14} className={config.color} />
                                                     {hunter.rank}
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                {hunter.latestReport ? (
+                                                    <div className="flex items-center gap-2 max-w-[200px] truncate">
+                                                        <FileWarning size={14} className={
+                                                            hunter.latestReport.severity === 'critical' ? 'text-red-500' :
+                                                                hunter.latestReport.severity === 'high' ? 'text-orange-500' :
+                                                                    hunter.latestReport.severity === 'medium' ? 'text-yellow-500' : 'text-blue-500'
+                                                        } />
+                                                        <span className="text-white/70 font-mono text-xs truncate" title={hunter.latestReport.vulnerability}>
+                                                            {hunter.latestReport.vulnerability}
+                                                        </span>
+                                                    </div>
+                                                ) : (
+                                                    <span className="text-white/30 font-mono text-xs italic">- No Data -</span>
+                                                )}
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                <div className="flex gap-2 items-center">
+                                                    {hunter.socials?.github && (
+                                                        <a href={`https://github.com/${hunter.socials.github.replace('https://github.com/', '')}`} target="_blank" rel="noopener noreferrer" className="text-white/40 hover:text-white transition-colors" title="GitHub">
+                                                            <Github size={16} />
+                                                        </a>
+                                                    )}
+                                                    {hunter.socials?.twitter && (
+                                                        <a href={`https://twitter.com/${hunter.socials.twitter.replace('https://twitter.com/', '').replace('https://x.com/', '')}`} target="_blank" rel="noopener noreferrer" className="text-white/40 hover:text-[#1DA1F2] transition-colors" title="Twitter/X">
+                                                            <Twitter size={16} />
+                                                        </a>
+                                                    )}
+                                                    {hunter.socials?.linkedin && (
+                                                        <a href={hunter.socials.linkedin.startsWith('http') ? hunter.socials.linkedin : `https://${hunter.socials.linkedin}`} target="_blank" rel="noopener noreferrer" className="text-white/40 hover:text-blue-500 transition-colors" title="LinkedIn">
+                                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z" /><rect width="4" height="12" x="2" y="9" /><circle cx="4" cy="4" r="2" /></svg>
+                                                        </a>
+                                                    )}
+                                                    {hunter.socials?.instagram && (
+                                                        <a href={hunter.socials.instagram.startsWith('http') ? hunter.socials.instagram : `https://${hunter.socials.instagram}`} target="_blank" rel="noopener noreferrer" className="text-white/40 hover:text-pink-500 transition-colors" title="Instagram">
+                                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="20" x="2" y="2" rx="5" ry="5" /><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" /><line x1="17.5" x2="17.51" y1="6.5" y2="6.5" /></svg>
+                                                        </a>
+                                                    )}
+                                                    {hunter.socials?.website && (
+                                                        <a href={hunter.socials.website.startsWith('http') ? hunter.socials.website : `https://${hunter.socials.website}`} target="_blank" rel="noopener noreferrer" className="text-white/40 hover:text-phoenix transition-colors" title="Website">
+                                                            <Globe size={16} />
+                                                        </a>
+                                                    )}
+                                                    {!(hunter.socials?.github || hunter.socials?.twitter || hunter.socials?.linkedin || hunter.socials?.instagram || hunter.socials?.website) && (
+                                                        <span className="text-white/20 font-mono text-xs">-</span>
+                                                    )}
                                                 </div>
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap text-center text-white/60 font-mono">
