@@ -3,7 +3,13 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase";
-import { Users, FileWarning, Handshake, ShieldAlert, CheckCircle, XCircle, Loader2, Trash2, Plus, BookOpen, Calendar } from "lucide-react";
+import {
+    Users, FileWarning, Handshake, ShieldAlert, CheckCircle,
+    XCircle, Loader2, Trash2, Plus, Calendar, Settings,
+    ChevronRight, LayoutDashboard, Database,
+    ExternalLink, AlertTriangle, Search
+} from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 
 type PendingReport = {
     id: string;
@@ -24,30 +30,36 @@ type Partner = {
     category: string;
 };
 
-type Documentation = {
-    id: string;
-    title: string;
-    slug: string;
-    category: string;
-};
-
 type Event = {
     id: string;
     title: string;
+    description?: string;
     event_date: string;
     location: string;
+    capacity: number;
+    discord_link?: string;
+    registered_count?: number;
+};
+
+type Registration = {
+    id: string;
+    event_id: string;
+    user_id: string;
+    username: string;
+    status: 'pending' | 'approved' | 'rejected';
+    created_at: string;
+    events?: { title: string };
 };
 
 export default function AdminDashboard() {
-    const [activeTab, setActiveTab] = useState("reports");
+    const [activeTab, setActiveTab] = useState("overview");
     const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
 
     // Real data states
     const [pendingReports, setPendingReports] = useState<PendingReport[]>([]);
     const [partners, setPartners] = useState<Partner[]>([]);
-    const [docs, setDocs] = useState<Documentation[]>([]);
     const [events, setEvents] = useState<Event[]>([]);
-
+    const [registrations, setRegistrations] = useState<Registration[]>([]);
     const [totalMembers, setTotalMembers] = useState(0);
     const [loadingAction, setLoadingAction] = useState<string | null>(null);
 
@@ -56,39 +68,41 @@ export default function AdminDashboard() {
     const [newPartnerUrl, setNewPartnerUrl] = useState("");
     const [newPartnerCategory, setNewPartnerCategory] = useState("Educational Partner");
 
-    const [newDocTitle, setNewDocTitle] = useState("");
-    const [newDocSlug, setNewDocSlug] = useState("");
-    const [newDocCategory, setNewDocCategory] = useState("Beginner Cybersecurity");
-
     const [newEventTitle, setNewEventTitle] = useState("");
+    const [newEventDesc, setNewEventDesc] = useState("");
     const [newEventDate, setNewEventDate] = useState("");
     const [newEventLocation, setNewEventLocation] = useState("");
-    const [newEventLink, setNewEventLink] = useState("");
+    const [newEventCapacity, setNewEventCapacity] = useState(50);
+    const [newEventDiscord, setNewEventDiscord] = useState("");
 
     const router = useRouter();
     const supabase = createClient();
 
+    const fetchDashboardData = async () => {
+        const { data: reportsData } = await supabase
+            .from('whitehat_reports')
+            .select('*, users(username)')
+            .eq('status', 'pending');
+        if (reportsData) setPendingReports(reportsData as unknown as PendingReport[]);
+
+        const { data: partnersData } = await supabase.from('partners').select('*').order('name');
+        if (partnersData) setPartners(partnersData as Partner[]);
+
+        const { data: eventsData } = await supabase.from('events').select('*').order('event_date', { ascending: true });
+        if (eventsData) setEvents(eventsData as Event[]);
+
+        const { data: regData } = await supabase
+            .from('event_registrations')
+            .select('*, events(title)')
+            .eq('status', 'pending')
+            .order('created_at', { ascending: false });
+        if (regData) setRegistrations(regData as unknown as Registration[]);
+
+        const { count: memberCount } = await supabase.from('users').select('*', { count: 'exact', head: true });
+        if (memberCount !== null) setTotalMembers(memberCount);
+    };
+
     useEffect(() => {
-        const fetchDashboardData = async () => {
-            const { data: reportsData } = await supabase
-                .from('whitehat_reports')
-                .select('*, users(username)')
-                .eq('status', 'pending');
-            if (reportsData) setPendingReports(reportsData as unknown as PendingReport[]);
-
-            const { data: partnersData } = await supabase.from('partners').select('*').order('name');
-            if (partnersData) setPartners(partnersData as Partner[]);
-
-            const { data: docsData } = await supabase.from('documentation').select('*').order('created_at', { ascending: false });
-            if (docsData) setDocs(docsData as Documentation[]);
-
-            const { data: eventsData } = await supabase.from('events').select('*').order('event_date', { ascending: true });
-            if (eventsData) setEvents(eventsData as Event[]);
-
-            const { count: memberCount } = await supabase.from('users').select('*', { count: 'exact', head: true });
-            if (memberCount !== null) setTotalMembers(memberCount);
-        };
-
         const checkAdminAndFetchData = async () => {
             const { data: { session } } = await supabase.auth.getSession();
             if (!session) {
@@ -104,7 +118,6 @@ export default function AdminDashboard() {
 
             const isHardcodedAdmin = session.user.id === '79d56ea8-9318-4459-9bde-4f48779e4509';
             if (!isHardcodedAdmin && (userError || userData?.role !== 'admin')) {
-                alert("Access Denied: You do not have superadmin privileges.");
                 router.push('/dashboard');
                 return;
             }
@@ -114,7 +127,14 @@ export default function AdminDashboard() {
         };
 
         checkAdminAndFetchData();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+
+        // Realtime sync
+        const channel = supabase.channel('admin-updates')
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'whitehat_reports' }, () => fetchDashboardData())
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'event_registrations' }, () => fetchDashboardData())
+            .subscribe();
+
+        return () => { supabase.removeChannel(channel) };
     }, [router, supabase]);
 
     // Mod functions
@@ -125,63 +145,35 @@ export default function AdminDashboard() {
             .update({ status: action === 'approve' ? 'approved' : 'rejected' })
             .eq('id', reportId);
 
-        if (error) alert("Error updating report: " + error.message);
-        else setPendingReports(prev => prev.filter(r => r.id !== reportId));
+        if (error) alert("Error: " + error.message);
+        else fetchDashboardData();
+        setLoadingAction(null);
+    };
+
+    const handleModerateRegistration = async (regId: string, action: 'approved' | 'rejected') => {
+        setLoadingAction(regId);
+        const { error } = await supabase
+            .from('event_registrations')
+            .update({ status: action })
+            .eq('id', regId);
+
+        if (error) alert("Error: " + error.message);
+        else fetchDashboardData();
         setLoadingAction(null);
     };
 
     const handleAddPartner = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoadingAction('add_partner');
-        const { data, error } = await supabase
+        const { error } = await supabase
             .from('partners')
-            .insert([{ name: newPartnerName, website: newPartnerUrl, category: newPartnerCategory }])
-            .select();
+            .insert([{ name: newPartnerName, website: newPartnerUrl, category: newPartnerCategory }]);
 
         if (error) alert(error.message);
-        else if (data) {
-            setPartners(prev => [...prev, data[0] as Partner]);
+        else {
             setNewPartnerName(""); setNewPartnerUrl("");
+            fetchDashboardData();
         }
-        setLoadingAction(null);
-    };
-
-    const handleDeletePartner = async (id: string) => {
-        if (!confirm("Delete this partner?")) return;
-        setLoadingAction(id);
-        const { error } = await supabase.from('partners').delete().eq('id', id);
-        if (!error) setPartners(prev => prev.filter(p => p.id !== id));
-        setLoadingAction(null);
-    };
-
-    const handleAddDoc = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setLoadingAction('add_doc');
-        const { data: sessionData } = await supabase.auth.getSession();
-        const { data, error } = await supabase
-            .from('documentation')
-            .insert([{
-                title: newDocTitle,
-                slug: newDocSlug,
-                category: newDocCategory,
-                status: 'published',
-                created_by: sessionData.session?.user.id
-            }])
-            .select();
-
-        if (error) alert(error.message);
-        else if (data) {
-            setDocs(prev => [data[0] as Documentation, ...prev]);
-            setNewDocTitle(""); setNewDocSlug("");
-        }
-        setLoadingAction(null);
-    };
-
-    const handleDeleteDoc = async (id: string) => {
-        if (!confirm("Delete this document?")) return;
-        setLoadingAction(id);
-        const { error } = await supabase.from('documentation').delete().eq('id', id);
-        if (!error) setDocs(prev => prev.filter(d => d.id !== id));
         setLoadingAction(null);
     };
 
@@ -189,319 +181,420 @@ export default function AdminDashboard() {
         e.preventDefault();
         setLoadingAction('add_event');
         const { data: sessionData } = await supabase.auth.getSession();
-        const { data, error } = await supabase
+        const { error } = await supabase
             .from('events')
             .insert([{
                 title: newEventTitle,
+                description: newEventDesc,
                 event_date: newEventDate,
                 location: newEventLocation,
-                registration_link: newEventLink,
+                capacity: newEventCapacity,
+                discord_link: newEventDiscord,
                 created_by: sessionData.session?.user.id
-            }])
-            .select();
+            }]);
 
         if (error) alert(error.message);
-        else if (data) {
-            setEvents(prev => [...prev, data[0] as Event].sort((a, b) => new Date(a.event_date).getTime() - new Date(b.event_date).getTime()));
-            setNewEventTitle(""); setNewEventDate(""); setNewEventLocation(""); setNewEventLink("");
+        else {
+            setNewEventTitle(""); setNewEventDesc(""); setNewEventDate(""); setNewEventLocation(""); setNewEventDiscord("");
+            fetchDashboardData();
         }
         setLoadingAction(null);
     };
 
-    const handleDeleteEvent = async (id: string) => {
-        if (!confirm("Delete this event?")) return;
+    const handleDeleteItem = async (table: string, id: string) => {
+        if (!confirm(`Delete this ${table.slice(0, -1)}?`)) return;
         setLoadingAction(id);
-        const { error } = await supabase.from('events').delete().eq('id', id);
-        if (!error) setEvents(prev => prev.filter(e => e.id !== id));
+        const { error } = await supabase.from(table).delete().eq('id', id);
+        if (!error) fetchDashboardData();
         setLoadingAction(null);
     };
 
     if (isAdmin === null) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-[#050505]">
-                <div className="text-phoenix flex flex-col items-center gap-4">
-                    <Loader2 size={32} className="animate-spin" />
-                    <p className="font-mono text-xs uppercase tracking-widest text-white/50">Verifying Clearance...</p>
+                <div className="flex flex-col items-center gap-4">
+                    <Loader2 size={32} className="text-phoenix animate-spin" />
+                    <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-white/30">Authenticating Proxy...</p>
                 </div>
             </div>
         );
     }
 
+    const navigation = [
+        { id: "overview", label: "Overview", icon: LayoutDashboard },
+        { id: "reports", label: "Vulnerability Triage", icon: FileWarning, badge: pendingReports.length },
+        { id: "events", label: "Event Management", icon: Calendar, badge: registrations.length },
+        { id: "partners", label: "Partners", icon: Handshake },
+        { id: "settings", label: "System Config", icon: Settings },
+    ];
+
     return (
-        <div className="min-h-screen pt-32 pb-24 px-6 md:px-12 bg-[#050505] border-t-4 border-phoenix relative">
-            <div className="max-w-7xl mx-auto">
-                <div className="flex items-center justify-between mb-10">
-                    <div className="flex items-center gap-4">
-                        <ShieldAlert size={32} className="text-phoenix" />
-                        <div>
-                            <h1 className="font-display text-4xl text-white">System Command</h1>
-                            <p className="font-mono text-xs text-phoenix uppercase tracking-widest mt-1">SuperAdmin Access Granted</p>
+        <div className="min-h-screen bg-[#050505] text-white flex">
+            {/* Sidebar Navigation */}
+            <aside className="w-80 border-r border-white/5 bg-[#080808] hidden lg:flex flex-col sticky top-0 h-screen">
+                <div className="p-8 border-b border-white/5">
+                    <div className="flex items-center gap-3 mb-2">
+                        <div className="w-8 h-8 bg-phoenix/20 border border-phoenix/50 rounded flex items-center justify-center">
+                            <ShieldAlert size={18} className="text-phoenix" />
                         </div>
+                        <span className="font-display font-bold text-xl tracking-tighter uppercase">Phoenix<span className="text-phoenix">Admin</span></span>
                     </div>
+                    <div className="flex items-center gap-2">
+                        <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+                        <span className="font-mono text-[9px] text-white/30 uppercase tracking-[0.2em]">Secure Node 01 // V1.2.4</span>
+                    </div>
+                </div>
+
+                <nav className="p-4 flex-1 space-y-1">
+                    {navigation.map((item) => (
+                        <button
+                            key={item.id}
+                            onClick={() => setActiveTab(item.id)}
+                            className={`w-full flex items-center justify-between p-3 rounded-lg transition-all group ${activeTab === item.id
+                                ? "bg-white/5 border border-white/10 text-white shadow-xl"
+                                : "text-white/40 hover:text-white hover:bg-white/2 border border-transparent"
+                                }`}
+                        >
+                            <div className="flex items-center gap-3">
+                                <item.icon size={18} className={activeTab === item.id ? "text-phoenix" : "group-hover:text-phoenix/70"} />
+                                <span className="font-mono text-xs uppercase tracking-wider">{item.label}</span>
+                            </div>
+                            {item.badge ? (
+                                <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold ${activeTab === item.id ? "bg-phoenix text-white" : "bg-white/10 text-white/50"}`}>
+                                    {item.badge}
+                                </span>
+                            ) : (
+                                <ChevronRight size={14} className="opacity-0 group-hover:opacity-40" />
+                            )}
+                        </button>
+                    ))}
+                </nav>
+
+                <div className="p-6 border-t border-white/5">
                     <button
                         onClick={() => { supabase.auth.signOut(); router.push('/') }}
-                        className="px-4 py-2 border border-red-500/30 text-red-500 hover:bg-red-500 hover:text-white transition-all font-mono text-xs uppercase"
+                        className="w-full p-3 bg-red-500/10 border border-red-500/30 text-red-500 rounded font-mono text-[10px] uppercase tracking-widest hover:bg-red-500 hover:text-white transition-all flex items-center justify-center gap-2"
                     >
-                        Emergency Terminate
+                        <AlertTriangle size={14} /> Emergency Logoff
                     </button>
                 </div>
+            </aside>
 
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
-                    {[
-                        { label: "Total Members", val: totalMembers, icon: Users },
-                        { label: "Pending Reports", val: pendingReports.length, icon: FileWarning, highlight: pendingReports.length > 0 },
-                        { label: "Total Documents", val: docs.length, icon: BookOpen },
-                        { label: "Partners", val: partners.length, icon: Handshake },
-                    ].map((stat, i) => (
-                        <div key={i} className={`p-6 bg-[#111] border ${stat.highlight ? 'border-phoenix/50' : 'border-white/10'} shadow-xl transition-all`}>
-                            <div className="flex items-center justify-between mb-4">
-                                <span className="font-mono text-xs text-white/50 uppercase">{stat.label}</span>
-                                <stat.icon size={16} className={stat.highlight ? 'text-phoenix' : 'text-white/30'} />
-                            </div>
-                            <span className="font-display text-3xl text-white">{stat.val}</span>
+            {/* Main Content Area */}
+            <main className="flex-1 min-h-screen relative overflow-hidden bg-grid-pattern bg-[length:30px_30px] bg-fixed">
+                <div className="absolute inset-0 bg-gradient-to-b from-[#050505] via-transparent to-[#050505] pointer-events-none" />
+
+                {/* Header Container */}
+                <div className="p-8 md:p-12 relative z-10">
+                    <header className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12">
+                        <div>
+                            <h2 className="text-3xl font-display font-medium text-white mb-1 uppercase tracking-tight">
+                                {navigation.find(n => n.id === activeTab)?.label}
+                            </h2>
+                            <p className="text-white/40 font-mono text-[10px] uppercase tracking-[0.2em]">Operational Dashboard // Root Access</p>
                         </div>
-                    ))}
-                </div>
+                        <div className="flex items-center gap-4 bg-[#111] border border-white/5 p-2 rounded-lg">
+                            <div className="px-4 py-2 border-r border-white/5 text-center">
+                                <div className="text-[10px] font-mono text-white/30 uppercase mb-1">Systems</div>
+                                <div className="text-green-500 font-mono font-bold text-xs uppercase">Optimal</div>
+                            </div>
+                            <div className="px-4 py-2 text-center">
+                                <div className="text-[10px] font-mono text-white/30 uppercase mb-1">Uptime</div>
+                                <div className="text-white font-mono font-bold text-xs">99.98%</div>
+                            </div>
+                        </div>
+                    </header>
 
-                <div className="flex flex-col md:flex-row gap-8">
-                    <div className="w-full md:w-64 space-y-2">
-                        {[
-                            { id: "reports", label: "Report Moderation", icon: FileWarning },
-                            { id: "partners", label: "Partners & Ecosystem", icon: Handshake },
-                            { id: "docs", label: "Knowledge Base", icon: BookOpen },
-                            { id: "events", label: "Cyber Events", icon: Calendar }
-                        ].map(tab => (
-                            <button
-                                key={tab.id}
-                                onClick={() => setActiveTab(tab.id)}
-                                className={`w-full p-4 text-left border font-mono text-sm transition-all flex items-center gap-3 ${activeTab === tab.id
-                                    ? "bg-white/10 border-white text-white"
-                                    : "bg-transparent border-transparent text-white/40 hover:bg-white/5"
-                                    }`}
+                    {/* Content Switcher */}
+                    <AnimatePresence mode="wait">
+                        {activeTab === "overview" && (
+                            <motion.div
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -10 }}
+                                className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
                             >
-                                <tab.icon size={16} /> {tab.label}
-                            </button>
-                        ))}
-                    </div>
-
-                    <div className="flex-1 bg-[#0a0a0a] border border-white/10 p-8 shadow-2xl min-h-[500px] relative overflow-hidden">
-                        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-phoenix/5 blur-[100px] rounded-full pointer-events-none" />
+                                {[
+                                    { label: "Total Members", val: totalMembers, icon: Users, trend: "+12% this week" },
+                                    { label: "Pending Triages", val: pendingReports.length, icon: FileWarning, alert: pendingReports.length > 0 },
+                                    { label: "Active Events", val: events.length, icon: Calendar, trend: "3 sessions scheduled" },
+                                    { label: "Partner Network", val: partners.length, icon: Handshake, trend: "2 new requests" },
+                                ].map((stat, i) => (
+                                    <div key={i} className={`p-8 bg-[#0d0d0d] border ${stat.alert ? 'border-phoenix/40 shadow-[0_0_20px_rgba(255,21,0,0.05)]' : 'border-white/5'} hover:border-white/10 transition-all rounded-xl relative overflow-hidden group`}>
+                                        <div className="absolute -right-4 -bottom-4 opacity-5 group-hover:opacity-10 transition-all group-hover:scale-110">
+                                            <stat.icon size={100} />
+                                        </div>
+                                        <div className="flex items-center justify-between mb-4">
+                                            <div className={`p-2 rounded ${stat.alert ? 'bg-phoenix/20 text-phoenix' : 'bg-white/5 text-white/40'}`}>
+                                                <stat.icon size={18} />
+                                            </div>
+                                            <span className="text-[10px] font-mono text-white/20 uppercase">{stat.trend || "Stable"}</span>
+                                        </div>
+                                        <div className="font-display text-4xl font-bold text-white mb-1 tracking-tight">{stat.val}</div>
+                                        <div className="text-xs font-mono text-white/40 uppercase tracking-widest leading-none">{stat.label}</div>
+                                    </div>
+                                ))}
+                            </motion.div>
+                        )}
 
                         {activeTab === "reports" && (
-                            <div className="animate-in fade-in duration-300 relative z-10">
-                                <h2 className="text-xl text-white font-medium mb-6 flex items-center gap-2">
-                                    <FileWarning className="text-phoenix" size={20} /> Pending Triage ({pendingReports.length})
-                                </h2>
+                            <motion.div
+                                initial={{ opacity: 0, x: 10 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                className="space-y-6"
+                            >
+                                <div className="flex items-center justify-between mb-8">
+                                    <div className="flex items-center gap-4">
+                                        <div className="px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-xs font-mono flex items-center gap-2">
+                                            <Search size={14} className="text-white/30" />
+                                            <input type="text" placeholder="Search by Target / Username..." className="bg-transparent border-none outline-none text-white w-64" />
+                                        </div>
+                                    </div>
+                                    <div className="text-xs font-mono text-white/30 uppercase tracking-[0.2em]">{pendingReports.length} REPORTS IN QUEUE</div>
+                                </div>
+
                                 {pendingReports.length === 0 ? (
-                                    <div className="text-center py-20 text-white/30 font-mono text-sm uppercase border border-dashed border-white/10">
-                                        Queue clear. No pending vulnerabilities.
+                                    <div className="py-24 text-center border border-dashed border-white/5 rounded-2xl">
+                                        <CheckCircle size={40} className="text-white/5 mx-auto mb-4" />
+                                        <p className="font-mono text-sm text-white/20 uppercase tracking-widest">Command queue is clear.</p>
                                     </div>
                                 ) : (
-                                    <div className="space-y-4">
+                                    <div className="grid grid-cols-1 gap-4">
                                         {pendingReports.map(report => (
-                                            <div key={report.id} className="p-6 border border-white/10 bg-[#111] relative hover:border-white/20 transition-all">
-                                                <div className="absolute top-0 left-0 w-1 h-full bg-phoenix/50" />
-                                                <div className="flex justify-between items-start mb-4">
-                                                    <div>
-                                                        <div className="flex flex-wrap gap-2 items-center mb-2">
-                                                            <span className="px-2 py-0.5 bg-phoenix/20 text-phoenix text-[10px] font-mono uppercase border border-phoenix/30">
-                                                                {report.severity} Priority
-                                                            </span>
-                                                            <span className="font-mono text-xs text-white/40">{new Date(report.created_at).toLocaleDateString()}</span>
-                                                        </div>
-                                                        <h3 className="font-medium text-white text-lg">
-                                                            {report.vulnerability} on {report.target}
-                                                            {report.target_type && <span className="text-white/40 font-mono text-sm ml-2">({report.target_type})</span>}
-                                                        </h3>
-                                                        <p className="font-mono text-sm text-white/50 mt-1">Submitted by <span className="text-white">@{report.users?.username || 'Unknown'}</span></p>
+                                            <div key={report.id} className="p-8 bg-[#0d0d0d] border border-white/5 hover:border-white/10 transition-all rounded-xl flex flex-col lg:flex-row gap-8">
+                                                <div className="flex-1">
+                                                    <div className="flex flex-wrap items-center gap-3 mb-4">
+                                                        <span className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-widest border ${report.severity === 'critical' ? 'bg-red-500/10 text-red-500 border-red-500/30' :
+                                                            report.severity === 'high' ? 'bg-orange-500/10 text-orange-500 border-orange-500/30' : 'bg-blue-500/10 text-blue-500 border-blue-500/30'
+                                                            }`}>
+                                                            {report.severity}
+                                                        </span>
+                                                        <span className="text-[10px] font-mono text-white/30">{new Date(report.created_at).toLocaleDateString()} / {new Date(report.created_at).toLocaleTimeString()}</span>
                                                     </div>
-                                                    <div className="flex gap-2">
-                                                        <button onClick={() => handleModerateReport(report.id, 'approve')} disabled={loadingAction === report.id} className="p-2 bg-green-500/10 text-green-500 border border-green-500/30 hover:bg-green-500 hover:text-white transition-all rounded disabled:opacity-50" title="Approve & Award Points">
-                                                            {loadingAction === report.id ? <Loader2 size={18} className="animate-spin" /> : <CheckCircle size={18} />}
-                                                        </button>
-                                                        <button onClick={() => handleModerateReport(report.id, 'reject')} disabled={loadingAction === report.id} className="p-2 bg-red-500/10 text-red-500 border border-red-500/30 hover:bg-red-500 hover:text-white transition-all rounded disabled:opacity-50" title="Reject Report">
-                                                            {loadingAction === report.id ? <Loader2 size={18} className="animate-spin" /> : <XCircle size={18} />}
-                                                        </button>
+                                                    <h4 className="text-xl font-display font-medium text-white mb-2">{report.vulnerability}</h4>
+                                                    <div className="flex items-center gap-2 text-xs font-mono text-white/40 mb-6 uppercase">
+                                                        <Database size={12} className="text-phoenix" /> {report.target}
+                                                        {report.target_type && <span className="px-1.5 py-0.5 bg-white/5 rounded text-[9px]">{report.target_type}</span>}
+                                                        <span className="mx-2 opacity-20">/</span>
+                                                        <Users size={12} className="text-phoenix" /> @{report.users?.username || 'Unknown'}
                                                     </div>
+                                                    <div className="p-4 bg-black/40 border border-white/5 rounded-lg text-sm text-white/60 font-mono leading-relaxed max-h-40 overflow-y-auto mb-4 break-words whitespace-pre-wrap">
+                                                        {report.description}
+                                                    </div>
+                                                    {report.reference_link && (
+                                                        <a href={report.reference_link} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-phoenix text-[10px] font-bold font-mono hover:text-white transition-colors uppercase tracking-widest">
+                                                            View Evidence Reference <ExternalLink size={10} />
+                                                        </a>
+                                                    )}
                                                 </div>
-                                                <div className="p-4 bg-charcoal border border-white/5 rounded text-sm text-white/70 font-mono mb-4 break-words">{report.description}</div>
-                                                {report.reference_link && (
-                                                    <a href={report.reference_link} target="_blank" rel="noopener noreferrer" className="text-phoenix text-xs font-mono hover:underline">View PoC Reference &rarr;</a>
-                                                )}
+                                                <div className="flex lg:flex-col justify-center gap-3 lg:w-48">
+                                                    <button
+                                                        onClick={() => handleModerateReport(report.id, 'approve')}
+                                                        disabled={!!loadingAction}
+                                                        className="flex-1 py-3 bg-green-500/10 border border-green-500/30 text-green-500 text-[10px] font-mono font-bold uppercase tracking-widest hover:bg-green-500 hover:text-white transition-all flex items-center justify-center gap-2 rounded disabled:opacity-50"
+                                                    >
+                                                        {loadingAction === report.id ? <Loader2 size={12} className="animate-spin" /> : <CheckCircle size={14} />} Approve
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleModerateReport(report.id, 'reject')}
+                                                        disabled={!!loadingAction}
+                                                        className="flex-1 py-3 bg-red-500/10 border border-red-500/30 text-red-500 text-[10px] font-mono font-bold uppercase tracking-widest hover:bg-red-500 hover:text-white transition-all flex items-center justify-center gap-2 rounded disabled:opacity-50"
+                                                    >
+                                                        {loadingAction === report.id ? <Loader2 size={12} className="animate-spin" /> : <XCircle size={14} />} Reject
+                                                    </button>
+                                                </div>
                                             </div>
                                         ))}
                                     </div>
                                 )}
-                            </div>
-                        )}
-
-                        {activeTab === "partners" && (
-                            <div className="animate-in fade-in relative z-10">
-                                <h2 className="text-xl text-white font-medium mb-6 flex items-center gap-2">
-                                    <Handshake className="text-phoenix" size={20} /> Ecosystem Partners
-                                </h2>
-                                <form onSubmit={handleAddPartner} className="mb-8 p-6 border border-white/10 bg-[#111] grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
-                                    <div className="md:col-span-1">
-                                        <label className="block text-xs font-mono text-white/50 mb-2 uppercase">Partner Name</label>
-                                        <input type="text" required value={newPartnerName} onChange={e => setNewPartnerName(e.target.value)} className="w-full bg-[#0a0a0a] border border-white/10 p-3 text-white font-mono text-sm outline-none focus:border-phoenix" />
-                                    </div>
-                                    <div className="md:col-span-1">
-                                        <label className="block text-xs font-mono text-white/50 mb-2 uppercase">Website</label>
-                                        <input type="url" required value={newPartnerUrl} onChange={e => setNewPartnerUrl(e.target.value)} className="w-full bg-[#0a0a0a] border border-white/10 p-3 text-white font-mono text-sm outline-none focus:border-phoenix" />
-                                    </div>
-                                    <div className="md:col-span-1">
-                                        <label className="block text-xs font-mono text-white/50 mb-2 uppercase">Category</label>
-                                        <select value={newPartnerCategory} onChange={e => setNewPartnerCategory(e.target.value)} className="w-full bg-[#0a0a0a] border border-white/10 p-3 text-white font-mono text-sm outline-none focus:border-phoenix appearance-none">
-                                            <option>Educational Partner</option>
-                                            <option>Community Partner</option>
-                                            <option>Media Partner</option>
-                                            <option>Security Collaboration</option>
-                                        </select>
-                                    </div>
-                                    <div className="md:col-span-1">
-                                        <button disabled={loadingAction === 'add_partner'} type="submit" className="w-full py-3 bg-phoenix hover:bg-phoenix-light text-white font-mono text-sm uppercase flex justify-center items-center gap-2">
-                                            {loadingAction === 'add_partner' ? <Loader2 size={16} className="animate-spin" /> : <><Plus size={16} /> Add Partner</>}
-                                        </button>
-                                    </div>
-                                </form>
-
-                                <div className="border border-white/10 bg-[#111]">
-                                    {partners.length === 0 ? (
-                                        <p className="p-6 text-center text-white/40 font-mono text-sm">No partners registered.</p>
-                                    ) : (
-                                        <table className="w-full text-left font-sans text-sm">
-                                            <thead className="bg-[#1a1a1a] border-b border-white/10 text-white/40 font-mono text-xs uppercase">
-                                                <tr><th className="p-4">Name</th><th className="p-4">Category</th><th className="p-4 text-right">Actions</th></tr>
-                                            </thead>
-                                            <tbody className="divide-y divide-white/5">
-                                                {partners.map(p => (
-                                                    <tr key={p.id} className="hover:bg-white/5">
-                                                        <td className="p-4 text-white font-medium">{p.name} <a href={p.website} className="text-xs text-phoenix ml-2 font-mono" target="_blank">Link</a></td>
-                                                        <td className="p-4 text-white/60">{p.category}</td>
-                                                        <td className="p-4 text-right">
-                                                            <button onClick={() => handleDeletePartner(p.id)} className="text-red-500 hover:text-red-400 p-2"><Trash2 size={16} /></button>
-                                                        </td>
-                                                    </tr>
-                                                ))}
-                                            </tbody>
-                                        </table>
-                                    )}
-                                </div>
-                            </div>
-                        )}
-
-                        {activeTab === "docs" && (
-                            <div className="animate-in fade-in relative z-10">
-                                <h2 className="text-xl text-white font-medium mb-6 flex items-center gap-2">
-                                    <BookOpen className="text-phoenix" size={20} /> Knowledge Base
-                                </h2>
-                                <form onSubmit={handleAddDoc} className="mb-8 p-6 border border-white/10 bg-[#111] grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
-                                    <div className="md:col-span-1">
-                                        <label className="block text-xs font-mono text-white/50 mb-2 uppercase">Article Title</label>
-                                        <input type="text" required value={newDocTitle} onChange={e => { setNewDocTitle(e.target.value); setNewDocSlug(e.target.value.toLowerCase().replace(/\\s+/g, '-').replace(/[^a-z0-9-]/g, '')); }} className="w-full bg-[#0a0a0a] border border-white/10 p-3 text-white font-mono text-sm outline-none focus:border-phoenix" />
-                                    </div>
-                                    <div className="md:col-span-1">
-                                        <label className="block text-xs font-mono text-white/50 mb-2 uppercase">URL Slug (Auto)</label>
-                                        <input type="text" required value={newDocSlug} onChange={e => setNewDocSlug(e.target.value)} className="w-full bg-[#0a0a0a] border border-white/10 p-3 text-white/50 font-mono text-sm outline-none" />
-                                    </div>
-                                    <div className="md:col-span-1">
-                                        <label className="block text-xs font-mono text-white/50 mb-2 uppercase">Category</label>
-                                        <select value={newDocCategory} onChange={e => setNewDocCategory(e.target.value)} className="w-full bg-[#0a0a0a] border border-white/10 p-3 text-white font-mono text-sm outline-none focus:border-phoenix appearance-none">
-                                            <option>Beginner Cybersecurity</option>
-                                            <option>Web Security</option>
-                                            <option>Linux Security</option>
-                                            <option>Bug Hunting Guide</option>
-                                        </select>
-                                    </div>
-                                    <div className="md:col-span-1">
-                                        <button disabled={loadingAction === 'add_doc'} type="submit" className="w-full py-3 bg-phoenix hover:bg-phoenix-light text-white font-mono text-sm uppercase flex justify-center items-center gap-2">
-                                            {loadingAction === 'add_doc' ? <Loader2 size={16} className="animate-spin" /> : <><Plus size={16} /> Publish</>}
-                                        </button>
-                                    </div>
-                                </form>
-
-                                <div className="border border-white/10 bg-[#111]">
-                                    {docs.length === 0 ? (
-                                        <p className="p-6 text-center text-white/40 font-mono text-sm">No documentation published.</p>
-                                    ) : (
-                                        <table className="w-full text-left font-sans text-sm">
-                                            <thead className="bg-[#1a1a1a] border-b border-white/10 text-white/40 font-mono text-xs uppercase">
-                                                <tr><th className="p-4">Title</th><th className="p-4">Category</th><th className="p-4 text-right">Actions</th></tr>
-                                            </thead>
-                                            <tbody className="divide-y divide-white/5">
-                                                {docs.map(d => (
-                                                    <tr key={d.id} className="hover:bg-white/5">
-                                                        <td className="p-4 text-white font-medium">{d.title} <span className="text-xs text-white/30 ml-2 font-mono">/{d.slug}</span></td>
-                                                        <td className="p-4 text-white/60">{d.category}</td>
-                                                        <td className="p-4 text-right">
-                                                            <button onClick={() => handleDeleteDoc(d.id)} className="text-red-500 hover:text-red-400 p-2"><Trash2 size={16} /></button>
-                                                        </td>
-                                                    </tr>
-                                                ))}
-                                            </tbody>
-                                        </table>
-                                    )}
-                                </div>
-                            </div>
+                            </motion.div>
                         )}
 
                         {activeTab === "events" && (
-                            <div className="animate-in fade-in relative z-10">
-                                <h2 className="text-xl text-white font-medium mb-6 flex items-center gap-2">
-                                    <Calendar className="text-phoenix" size={20} /> Events Management
-                                </h2>
-                                <form onSubmit={handleAddEvent} className="mb-8 p-6 border border-white/10 bg-[#111] grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
-                                    <div className="md:col-span-1">
-                                        <label className="block text-xs font-mono text-white/50 mb-2 uppercase">Event Title</label>
-                                        <input type="text" required value={newEventTitle} onChange={e => setNewEventTitle(e.target.value)} className="w-full bg-[#0a0a0a] border border-white/10 p-3 text-white font-mono text-sm outline-none focus:border-phoenix" placeholder="CTF Hacking 101" />
+                            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-8">
+                                {/* Registration Triage */}
+                                <div>
+                                    <div className="flex items-baseline gap-3 mb-6">
+                                        <h3 className="text-lg font-display font-medium uppercase tracking-tight">Registration Triage</h3>
+                                        <span className="text-[10px] font-mono text-white/20 uppercase tracking-widest">{registrations.length} Pending Approval</span>
                                     </div>
-                                    <div className="md:col-span-1">
-                                        <label className="block text-xs font-mono text-white/50 mb-2 uppercase">Date & Time</label>
-                                        <input type="datetime-local" required value={newEventDate} onChange={e => setNewEventDate(e.target.value)} className="w-full bg-[#0a0a0a] border border-white/10 p-3 text-white/50 font-mono text-sm outline-none" />
-                                    </div>
-                                    <div className="md:col-span-1">
-                                        <label className="block text-xs font-mono text-white/50 mb-2 uppercase">Location</label>
-                                        <input type="text" required value={newEventLocation} onChange={e => setNewEventLocation(e.target.value)} className="w-full bg-[#0a0a0a] border border-white/10 p-3 text-white font-mono text-sm outline-none focus:border-phoenix" placeholder="Discord / Zoom" />
-                                    </div>
-                                    <div className="md:col-span-1">
-                                        <label className="block text-xs font-mono text-white/50 mb-2 uppercase">Registration Link</label>
-                                        <input type="url" value={newEventLink} onChange={e => setNewEventLink(e.target.value)} className="w-full bg-[#0a0a0a] border border-white/10 p-3 text-white/50 font-mono text-sm outline-none" placeholder="https://..." />
-                                    </div>
-                                    <div className="md:col-span-1">
-                                        <button disabled={loadingAction === 'add_event'} type="submit" className="w-full py-3 bg-phoenix hover:bg-phoenix-light text-white font-mono text-sm uppercase flex justify-center items-center gap-2">
-                                            {loadingAction === 'add_event' ? <Loader2 size={16} className="animate-spin" /> : <><Plus size={16} /> Schedule</>}
-                                        </button>
-                                    </div>
-                                </form>
 
-                                <div className="border border-white/10 bg-[#111]">
-                                    {events.length === 0 ? (
-                                        <p className="p-6 text-center text-white/40 font-mono text-sm">No upcoming events scheduled.</p>
+                                    {registrations.length === 0 ? (
+                                        <div className="py-12 text-center border border-dashed border-white/5 rounded-xl">
+                                            <Users size={32} className="text-white/5 mx-auto mb-4" />
+                                            <p className="font-mono text-xs text-white/20 uppercase">No new student applications.</p>
+                                        </div>
                                     ) : (
-                                        <table className="w-full text-left font-sans text-sm">
-                                            <thead className="bg-[#1a1a1a] border-b border-white/10 text-white/40 font-mono text-xs uppercase">
-                                                <tr><th className="p-4">Event</th><th className="p-4">Date</th><th className="p-4">Location</th><th className="p-4 text-right">Actions</th></tr>
-                                            </thead>
-                                            <tbody className="divide-y divide-white/5">
-                                                {events.map(e => (
-                                                    <tr key={e.id} className="hover:bg-white/5">
-                                                        <td className="p-4 text-white font-medium">{e.title}</td>
-                                                        <td className="p-4 text-white/60">{new Date(e.event_date).toLocaleString()}</td>
-                                                        <td className="p-4 text-white/60">{e.location}</td>
-                                                        <td className="p-4 text-right">
-                                                            <button onClick={() => handleDeleteEvent(e.id)} className="text-red-500 hover:text-red-400 p-2"><Trash2 size={16} /></button>
-                                                        </td>
-                                                    </tr>
-                                                ))}
-                                            </tbody>
-                                        </table>
+                                        <div className="space-y-3">
+                                            {registrations.map(reg => (
+                                                <div key={reg.id} className="p-4 bg-[#0d0d0d] border border-white/5 hover:border-white/10 flex items-center justify-between rounded-lg">
+                                                    <div className="flex items-center gap-4">
+                                                        <div className="w-10 h-10 rounded bg-phoenix/20 flex items-center justify-center">
+                                                            <Users size={18} className="text-phoenix" />
+                                                        </div>
+                                                        <div>
+                                                            <div className="font-bold text-sm">@{reg.username}</div>
+                                                            <div className="text-[10px] font-mono text-white/30 uppercase">Applying for: <span className="text-phoenix">{reg.events?.title}</span></div>
+                                                        </div>
+                                                    </div>
+                                                    <div className="flex gap-2">
+                                                        <button
+                                                            onClick={() => handleModerateRegistration(reg.id, 'approved')}
+                                                            disabled={!!loadingAction}
+                                                            className="px-4 py-2 border border-green-500/30 text-green-500 text-[10px] font-mono uppercase bg-green-500/5 hover:bg-green-500 hover:text-white transition-all rounded disabled:opacity-50"
+                                                        >
+                                                            Accept
+                                                        </button>
+                                                        <button
+                                                            onClick={() => handleModerateRegistration(reg.id, 'rejected')}
+                                                            disabled={!!loadingAction}
+                                                            className="px-4 py-2 border border-red-500/30 text-red-500 text-[10px] font-mono uppercase bg-red-500/5 hover:bg-red-500 hover:text-white transition-all rounded disabled:opacity-50"
+                                                        >
+                                                            Dismiss
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
                                     )}
                                 </div>
-                            </div>
+
+                                {/* Create Event Form */}
+                                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 pt-8 border-t border-white/5">
+                                    <div className="p-8 bg-[#0d0d0d] border border-white/5 rounded-xl">
+                                        <h3 className="text-lg font-display font-medium uppercase tracking-tight mb-6 flex items-center gap-2">
+                                            <Plus size={18} className="text-phoenix" /> Schedule New Class
+                                        </h3>
+                                        <form onSubmit={handleAddEvent} className="space-y-4">
+                                            <div>
+                                                <label className="block text-[10px] font-mono text-white/30 uppercase mb-2">Class Title</label>
+                                                <input type="text" required value={newEventTitle} onChange={e => setNewEventTitle(e.target.value)} className="w-full bg-black border border-white/10 p-4 text-white font-mono text-sm outline-none focus:border-phoenix rounded" placeholder="Web Security Mastery" />
+                                            </div>
+                                            <div>
+                                                <label className="block text-[10px] font-mono text-white/30 uppercase mb-2">Description</label>
+                                                <textarea required value={newEventDesc} onChange={e => setNewEventDesc(e.target.value)} className="w-full bg-black border border-white/10 p-4 text-white font-mono text-sm outline-none focus:border-phoenix rounded h-24 resize-none" placeholder="Targeting modern vulnerabilities..." />
+                                            </div>
+                                            <div className="grid grid-cols-2 gap-4">
+                                                <div>
+                                                    <label className="block text-[10px] font-mono text-white/30 uppercase mb-2">Date & Time</label>
+                                                    <input type="datetime-local" required value={newEventDate} onChange={e => setNewEventDate(e.target.value)} className="w-full bg-black border border-white/10 p-4 text-white font-mono text-sm outline-none focus:border-phoenix rounded" />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-[10px] font-mono text-white/30 uppercase mb-2">Capacity</label>
+                                                    <input type="number" required value={newEventCapacity} onChange={e => setNewEventCapacity(parseInt(e.target.value))} className="w-full bg-black border border-white/10 p-4 text-white font-mono text-sm outline-none focus:border-phoenix rounded" />
+                                                </div>
+                                            </div>
+                                            <div className="grid grid-cols-2 gap-4">
+                                                <div>
+                                                    <label className="block text-[10px] font-mono text-white/30 uppercase mb-2">Location</label>
+                                                    <input type="text" required value={newEventLocation} onChange={e => setNewEventLocation(e.target.value)} className="w-full bg-black border border-white/10 p-4 text-white font-mono text-sm outline-none focus:border-phoenix rounded" placeholder="Discord Node-01" />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-[10px] font-mono text-white/30 uppercase mb-2">Discord Access Link</label>
+                                                    <input type="url" required value={newEventDiscord} onChange={e => setNewEventDiscord(e.target.value)} className="w-full bg-black border border-white/10 p-4 text-white font-mono text-sm outline-none focus:border-phoenix rounded" placeholder="https://discord.gg/..." />
+                                                </div>
+                                            </div>
+                                            <button
+                                                disabled={loadingAction === 'add_event'}
+                                                type="submit"
+                                                className="w-full py-4 bg-phoenix hover:bg-phoenix-light text-white font-mono text-xs font-bold uppercase tracking-widest transition-all rounded mt-4"
+                                            >
+                                                {loadingAction === 'add_event' ? <Loader2 size={18} className="animate-spin mx-auto" /> : "Deploy Classroom"}
+                                            </button>
+                                        </form>
+                                    </div>
+
+                                    {/* Existing Events List */}
+                                    <div className="p-8 bg-[#0d0d0d] border border-white/5 rounded-xl">
+                                        <h3 className="text-lg font-display font-medium uppercase tracking-tight mb-6">Live Classes</h3>
+                                        <div className="space-y-4">
+                                            {events.map(ev => (
+                                                <div key={ev.id} className="p-4 border border-white/5 bg-black/40 rounded flex flex-col gap-2">
+                                                    <div className="flex justify-between items-start">
+                                                        <div className="font-bold text-white">{ev.title}</div>
+                                                        <button onClick={() => handleDeleteItem('events', ev.id)} className="text-red-500/50 hover:text-red-500 transition-colors p-1"><Trash2 size={14} /></button>
+                                                    </div>
+                                                    <div className="flex items-center gap-4 text-[10px] font-mono text-white/30 uppercase">
+                                                        <span>{new Date(ev.event_date).toLocaleDateString()}</span>
+                                                        <span>Capacity: {ev.capacity}</span>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                            {events.length === 0 && <p className="text-center font-mono text-xs text-white/20 py-12">No active events.</p>}
+                                        </div>
+                                    </div>
+                                </div>
+                            </motion.div>
                         )}
-                    </div>
+
+                        {activeTab === "partners" && (
+                            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-8">
+                                <div className="p-8 bg-[#0d0d0d] border border-white/5 rounded-xl">
+                                    <h3 className="text-lg font-display font-medium uppercase tracking-tight mb-6">Ecosystem Expansion</h3>
+                                    <form onSubmit={handleAddPartner} className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+                                        <div>
+                                            <label className="block text-[10px] font-mono text-white/30 uppercase mb-2">Partner Name</label>
+                                            <input type="text" required value={newPartnerName} onChange={e => setNewPartnerName(e.target.value)} className="w-full bg-black border border-white/10 p-4 text-white font-mono text-sm outline-none focus:border-phoenix rounded" />
+                                        </div>
+                                        <div>
+                                            <label className="block text-[10px] font-mono text-white/30 uppercase mb-2">Website</label>
+                                            <input type="url" required value={newPartnerUrl} onChange={e => setNewPartnerUrl(e.target.value)} className="w-full bg-black border border-white/10 p-4 text-white font-mono text-sm outline-none focus:border-phoenix rounded" />
+                                        </div>
+                                        <div>
+                                            <label className="block text-[10px] font-mono text-white/30 uppercase mb-2">Category</label>
+                                            <select value={newPartnerCategory} onChange={e => setNewPartnerCategory(e.target.value)} className="w-full bg-black border border-white/10 p-4 text-white font-mono text-sm outline-none focus:border-phoenix appearance-none rounded">
+                                                <option>Educational Partner</option>
+                                                <option>Community Partner</option>
+                                                <option>Media Partner</option>
+                                                <option>Security Collaboration</option>
+                                            </select>
+                                        </div>
+                                        <button disabled={loadingAction === 'add_partner'} type="submit" className="py-4 bg-white text-black hover:bg-phoenix hover:text-white font-mono text-xs font-bold uppercase rounded transition-all">
+                                            {loadingAction === 'add_partner' ? <Loader2 size={18} className="animate-spin mx-auto" /> : "Link Partner"}
+                                        </button>
+                                    </form>
+                                </div>
+
+                                <div className="bg-[#0b0b0b] border border-white/5 rounded-xl overflow-hidden">
+                                    <table className="w-full text-left">
+                                        <thead className="bg-white/5 font-mono text-[10px] text-white/40 uppercase">
+                                            <tr>
+                                                <th className="p-6">Entity</th>
+                                                <th className="p-6">Classification</th>
+                                                <th className="p-6 text-right">Control</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="divide-y divide-white/5 font-sans text-sm">
+                                            {partners.map(p => (
+                                                <tr key={p.id} className="hover:bg-white/2 transition-colors">
+                                                    <td className="p-6">
+                                                        <div className="font-bold text-white">{p.name}</div>
+                                                        <a href={p.website} target="_blank" className="text-[10px] font-mono text-phoenix hover:underline">{p.website}</a>
+                                                    </td>
+                                                    <td className="p-6 text-white/50">{p.category}</td>
+                                                    <td className="p-6 text-right">
+                                                        <button onClick={() => handleDeleteItem('partners', p.id)} className="text-red-500/50 hover:text-red-500 p-2 transition-colors"><Trash2 size={16} /></button>
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </motion.div>
+                        )}
+
+                        {activeTab === "settings" && (
+                            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col items-center justify-center py-20 text-center">
+                                <Settings size={48} className="text-white/5 mb-4 animate-slow-spin" />
+                                <h3 className="text-xl font-display font-medium text-white/20 uppercase tracking-widest">System Configuration</h3>
+                                <p className="text-white/10 font-mono text-[10px] mt-2 tracking-[0.4em uppercase]">Protected Kernel Modules // Not Accessible via Proxy</p>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
                 </div>
-            </div>
+            </main>
         </div>
     );
 }
+
+
