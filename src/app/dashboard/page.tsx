@@ -1,117 +1,247 @@
 "use client";
 
-import { useState } from "react";
-import { Shield, FileWarning } from "lucide-react";
+import { useState, useEffect } from "react";
+import { createClient } from "@/lib/supabase";
+import { User } from "@supabase/supabase-js";
+import { Shield, FileWarning, Activity, Search, Crosshair, AlertTriangle, CheckCircle, Clock } from "lucide-react";
+import { useRouter } from "next/navigation";
+
+type Report = {
+    id: string;
+    target: string;
+    vulnerability: string;
+    severity: string;
+    status: string;
+    created_at: string;
+    points: number;
+};
 
 export default function Dashboard() {
     const [activeTab, setActiveTab] = useState("submit");
+    const [user, setUser] = useState<User | null>(null);
+    const [history, setHistory] = useState<Report[]>([]);
+
+    // Form states
+    const [target, setTarget] = useState("");
+    const [vulnType, setVulnType] = useState("");
+    const [severity, setSeverity] = useState("low");
+    const [year, setYear] = useState(new Date().getFullYear().toString());
+    const [link, setLink] = useState("");
+    const [desc, setDesc] = useState("");
+    const [isSubmitting, setIsSubmitting] = useState(false);
+
+    const supabase = createClient();
+    const router = useRouter();
+
+    useEffect(() => {
+        const init = async () => {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session) {
+                router.push('/join');
+                return;
+            }
+            setUser(session.user);
+
+            const { data, error } = await supabase
+                .from('whitehat_reports')
+                .select('*')
+                .eq('user_id', session.user.id)
+                .order('created_at', { ascending: false });
+
+            if (!error && data) {
+                setHistory(data as Report[]);
+            }
+        };
+        init();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [router, supabase]);
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!user) return;
+        setIsSubmitting(true);
+
+        const { data, error } = await supabase.from('whitehat_reports').insert([{
+            user_id: user.id,
+            target,
+            vulnerability: vulnType,
+            severity,
+            report_year: parseInt(year),
+            reference_link: link,
+            description: desc,
+            status: 'pending' // Default status
+        }]).select();
+
+        if (error) {
+            alert("Submission failed: " + error.message);
+        } else if (data) {
+            setHistory(prev => [data[0] as Report, ...prev]);
+            setActiveTab("history");
+            setTarget(""); setVulnType(""); setLink(""); setDesc(""); setSeverity("low");
+        }
+        setIsSubmitting(false);
+    };
 
     return (
-        <div className="min-h-screen pt-32 pb-24 px-6 md:px-12 bg-charcoal-dark border-t border-white/5 relative">
-            <div className="max-w-6xl mx-auto">
-                <h1 className="font-display text-3xl text-white mb-2">Hunter Dashboard</h1>
-                <p className="font-mono text-sm text-white/50 uppercase tracking-widest mb-10">Restricted Access Area</p>
+        <div className="min-h-screen pt-32 pb-24 px-6 md:px-12 bg-[#020617] relative overflow-hidden">
+            {/* Ambient Backgrounds */}
+            <div className="absolute top-0 right-1/4 w-[800px] h-[800px] bg-phoenix/5 blur-[150px] rounded-full pointer-events-none" />
+            <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-blue-900/10 blur-[150px] rounded-full pointer-events-none" />
 
-                <div className="flex flex-col md:flex-row gap-8">
-                    {/* Sidebar Menu */}
-                    <div className="w-full md:w-64 flex flex-col gap-2">
+            <div className="max-w-7xl mx-auto relative z-10">
+                <div className="flex flex-col md:flex-row justify-between items-end mb-12">
+                    <div>
+                        <div className="flex items-center gap-3 mb-2">
+                            <Activity className="text-phoenix" size={24} />
+                            <h1 className="font-display font-medium text-4xl text-white tracking-tight">Hunter Workspace</h1>
+                        </div>
+                        <p className="font-mono text-xs text-phoenix uppercase tracking-widest flex items-center gap-2">
+                            <span className="w-2 h-2 rounded-full bg-phoenix animate-pulse" />
+                            Encrypted Sector - Level 4 Clearance
+                        </p>
+                    </div>
+                </div>
+
+                <div className="flex flex-col lg:flex-row gap-8">
+                    {/* Navigation Panel */}
+                    <div className="w-full lg:w-72 flex flex-col gap-3">
                         <button
                             onClick={() => setActiveTab("submit")}
-                            className={`p-4 text-left border font-mono text-sm transition-all flex items-center gap-3 ${activeTab === "submit"
-                                ? "bg-phoenix/10 border-phoenix text-phoenix"
-                                : "bg-[#111] border-white/5 text-white/50 hover:bg-white/5"
+                            className={`p-5 text-left font-mono text-sm transition-all flex items-center justify-between rounded-xl border backdrop-blur-md overflow-hidden relative group ${activeTab === "submit"
+                                ? "bg-phoenix/10 border-phoenix/50 text-white shadow-[0_0_30px_rgba(59,130,246,0.15)]"
+                                : "bg-white/5 border-white/10 text-white/50 hover:bg-white/10 hover:border-white/20"
                                 }`}
                         >
-                            <FileWarning size={16} /> Submit Report
+                            {activeTab === "submit" && <div className="absolute left-0 top-0 w-1 h-full bg-phoenix" />}
+                            <div className="flex items-center gap-3">
+                                <Crosshair size={18} className={activeTab === "submit" ? "text-phoenix" : ""} />
+                                <span>Lodge Report</span>
+                            </div>
                         </button>
+
                         <button
                             onClick={() => setActiveTab("history")}
-                            className={`p-4 text-left border font-mono text-sm transition-all flex items-center gap-3 ${activeTab === "history"
-                                ? "bg-phoenix/10 border-phoenix text-phoenix"
-                                : "bg-[#111] border-white/5 text-white/50 hover:bg-white/5"
+                            className={`p-5 text-left font-mono text-sm transition-all flex items-center justify-between rounded-xl border backdrop-blur-md overflow-hidden relative group ${activeTab === "history"
+                                ? "bg-phoenix/10 border-phoenix/50 text-white shadow-[0_0_30px_rgba(59,130,246,0.15)]"
+                                : "bg-white/5 border-white/10 text-white/50 hover:bg-white/10 hover:border-white/20"
                                 }`}
                         >
-                            <Shield size={16} /> Report History
+                            {activeTab === "history" && <div className="absolute left-0 top-0 w-1 h-full bg-phoenix" />}
+                            <div className="flex items-center gap-3">
+                                <Search size={18} className={activeTab === "history" ? "text-phoenix" : ""} />
+                                <span>Audit Log</span>
+                            </div>
+                            <span className="bg-[#0a0a0a] text-xs px-2 py-1 rounded-md border border-white/10">{history.length}</span>
                         </button>
                     </div>
 
-                    {/* Main Content Area */}
-                    <div className="flex-1 bg-[#111] border border-white/10 p-8 shadow-2xl relative">
-                        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-phoenix-light via-phoenix to-phoenix-dark" />
+                    {/* Main Interface */}
+                    <div className="flex-1 bg-white/[0.02] border border-white/10 p-8 md:p-12 rounded-2xl shadow-2xl backdrop-blur-xl relative">
+                        <div className="absolute top-0 left-8 right-8 h-px bg-gradient-to-r from-transparent via-phoenix/50 to-transparent" />
 
                         {activeTab === "submit" && (
-                            <div className="animate-in fade-in duration-300">
-                                <h2 className="text-xl text-white font-medium mb-6">Submit Vulnerability Report</h2>
+                            <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                                <h2 className="text-2xl text-white font-medium mb-2 font-display">Vulnerability Intake Form</h2>
+                                <p className="text-white/40 font-mono text-sm mb-8">All transmissions are end-to-end encrypted. False reports will negatively impact your reputation.</p>
 
-                                <form className="space-y-6">
+                                <form onSubmit={handleSubmit} className="space-y-6">
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                        <div>
-                                            <label className="block text-white/50 text-xs font-mono uppercase mb-2">Target / Organization</label>
-                                            <input type="text" className="w-full bg-charcoal border border-white/10 px-4 py-3 text-white focus:outline-none focus:border-phoenix font-mono text-sm" placeholder="e.g. *.kominfo.go.id" required />
+                                        <div className="space-y-2">
+                                            <label className="block text-white/60 text-xs font-mono uppercase tracking-wider">Target Domain / Asset</label>
+                                            <input type="text" value={target} onChange={e => setTarget(e.target.value)} className="w-full bg-[#0a0a0a]/50 border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-phoenix focus:ring-1 focus:ring-phoenix/50 font-mono text-sm transition-all" placeholder="e.g. *.target.com" required />
                                         </div>
-                                        <div>
-                                            <label className="block text-white/50 text-xs font-mono uppercase mb-2">Vulnerability Type</label>
-                                            <input type="text" className="w-full bg-charcoal border border-white/10 px-4 py-3 text-white focus:outline-none focus:border-phoenix font-mono text-sm" placeholder="e.g. SQL Injection" required />
+                                        <div className="space-y-2">
+                                            <label className="block text-white/60 text-xs font-mono uppercase tracking-wider">Vulnerability Class</label>
+                                            <input type="text" value={vulnType} onChange={e => setVulnType(e.target.value)} className="w-full bg-[#0a0a0a]/50 border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-phoenix focus:ring-1 focus:ring-phoenix/50 font-mono text-sm transition-all" placeholder="e.g. Remote Code Execution" required />
                                         </div>
                                     </div>
 
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                        <div>
-                                            <label className="block text-white/50 text-xs font-mono uppercase mb-2">Severity</label>
-                                            <select className="w-full bg-charcoal border border-white/10 px-4 py-3 text-white focus:outline-none focus:border-phoenix font-mono text-sm appearance-none">
-                                                <option value="low">Low (50 pts)</option>
-                                                <option value="medium">Medium (100 pts)</option>
-                                                <option value="high">High (200 pts)</option>
-                                                <option value="critical">Critical (400 pts)</option>
+                                        <div className="space-y-2">
+                                            <label className="block text-white/60 text-xs font-mono uppercase tracking-wider">Impact Severity</label>
+                                            <select value={severity} onChange={e => setSeverity(e.target.value)} className="w-full bg-[#0a0a0a]/50 border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-phoenix focus:ring-1 focus:ring-phoenix/50 font-mono text-sm appearance-none transition-all">
+                                                <option value="low">Low Risk (50 pts)</option>
+                                                <option value="medium">Medium Risk (100 pts)</option>
+                                                <option value="high">High Risk (200 pts)</option>
+                                                <option value="critical">Critical Risk (400 pts)</option>
                                             </select>
                                         </div>
-                                        <div>
-                                            <label className="block text-white/50 text-xs font-mono uppercase mb-2">Report Year</label>
-                                            <input type="number" defaultValue={new Date().getFullYear()} className="w-full bg-charcoal border border-white/10 px-4 py-3 text-white focus:outline-none focus:border-phoenix font-mono text-sm" required />
+                                        <div className="space-y-2">
+                                            <label className="block text-white/60 text-xs font-mono uppercase tracking-wider">Discovery Year</label>
+                                            <input type="number" value={year} onChange={e => setYear(e.target.value)} className="w-full bg-[#0a0a0a]/50 border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-phoenix focus:ring-1 focus:ring-phoenix/50 font-mono text-sm transition-all" required />
                                         </div>
                                     </div>
 
-                                    <div>
-                                        <label className="block text-white/50 text-xs font-mono uppercase mb-2">Reference Link / PoC Video</label>
-                                        <input type="url" className="w-full bg-charcoal border border-white/10 px-4 py-3 text-white focus:outline-none focus:border-phoenix font-mono text-sm" placeholder="https://..." required />
+                                    <div className="space-y-2">
+                                        <label className="block text-white/60 text-xs font-mono uppercase tracking-wider">Proof of Concept (URL)</label>
+                                        <input type="url" value={link} onChange={e => setLink(e.target.value)} className="w-full bg-[#0a0a0a]/50 border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-phoenix focus:ring-1 focus:ring-phoenix/50 font-mono text-sm transition-all" placeholder="https://..." required />
                                     </div>
 
-                                    <div>
-                                        <label className="block text-white/50 text-xs font-mono uppercase mb-2">Short Description</label>
-                                        <textarea rows={4} className="w-full bg-charcoal border border-white/10 px-4 py-3 text-white focus:outline-none focus:border-phoenix font-mono text-sm resize-none" placeholder="Describe the impact briefly..." required />
+                                    <div className="space-y-2">
+                                        <label className="block text-white/60 text-xs font-mono uppercase tracking-wider">Executive Summary</label>
+                                        <textarea rows={4} value={desc} onChange={e => setDesc(e.target.value)} className="w-full bg-[#0a0a0a]/50 border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-phoenix focus:ring-1 focus:ring-phoenix/50 font-mono text-sm resize-none transition-all" placeholder="Briefly describe how this vulnerability can be exploited..." required />
                                     </div>
 
-                                    <button type="submit" className="px-8 py-4 bg-white text-charcoal font-mono uppercase tracking-widest text-sm font-bold hover:bg-phoenix hover:text-white transition-all">
-                                        Submit Report for Review
+                                    <button disabled={isSubmitting} type="submit" className="w-full md:w-auto px-8 py-4 mt-4 bg-phoenix hover:bg-phoenix-light text-white rounded-lg font-mono uppercase tracking-widest text-sm font-bold transition-all shadow-[0_0_20px_rgba(59,130,246,0.3)] disabled:opacity-50 flex justify-center items-center">
+                                        {isSubmitting ? 'Transmitting...' : 'Initiate Secure Transfer'}
                                     </button>
                                 </form>
                             </div>
                         )}
 
                         {activeTab === "history" && (
-                            <div className="animate-in fade-in duration-300">
-                                <h2 className="text-xl text-white font-medium mb-6">Your Report History</h2>
+                            <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                                <h2 className="text-2xl text-white font-medium mb-8 font-display">Intelligence Audit Log</h2>
 
-                                <div className="overflow-x-auto">
-                                    <table className="w-full text-left font-sans">
-                                        <thead className="border-b border-white/10 font-mono text-xs uppercase text-white/40">
-                                            <tr>
-                                                <th className="py-4 font-medium">Target</th>
-                                                <th className="py-4 font-medium">Type</th>
-                                                <th className="py-4 font-medium">Severity</th>
-                                                <th className="py-4 font-medium text-right">Status</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody className="divide-y divide-white/5 text-sm">
-                                            {/* Empty state mock */}
-                                            <tr>
-                                                <td colSpan={4} className="py-12 text-center text-white/30 font-mono text-xs uppercase">
-                                                    No reports submitted yet.
-                                                </td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
-                                </div>
+                                {history.length === 0 ? (
+                                    <div className="py-16 text-center border border-dashed border-white/10 rounded-xl bg-white/[0.01]">
+                                        <Shield className="mx-auto text-white/20 mb-4" size={48} />
+                                        <p className="text-white/40 font-mono text-sm uppercase tracking-widest">No intelligence gathered yet.</p>
+                                    </div>
+                                ) : (
+                                    <div className="space-y-4">
+                                        {history.map(report => (
+                                            <div key={report.id} className="p-5 border border-white/10 bg-[#0a0a0a]/50 rounded-xl hover:border-phoenix/30 transition-all group flex flex-col md:flex-row justify-between md:items-center gap-4">
+                                                <div className="flex-1">
+                                                    <div className="flex items-center gap-3 mb-2">
+                                                        <span className={`px-2 py-0.5 rounded text-[10px] font-mono uppercase font-bold tracking-wider ${report.severity === 'critical' ? 'bg-red-500/10 text-red-400 border border-red-500/20' :
+                                                            report.severity === 'high' ? 'bg-orange-500/10 text-orange-400 border border-orange-500/20' :
+                                                                report.severity === 'medium' ? 'bg-yellow-500/10 text-yellow-400 border border-yellow-500/20' :
+                                                                    'bg-blue-500/10 text-blue-400 border border-blue-500/20'
+                                                            }`}>
+                                                            {report.severity}
+                                                        </span>
+                                                        <h3 className="text-white font-medium text-lg">{report.target}</h3>
+                                                    </div>
+                                                    <p className="text-white/50 font-mono text-sm">{report.vulnerability}</p>
+                                                </div>
+
+                                                <div className="flex items-center gap-8 md:text-right">
+                                                    <div className="hidden md:block">
+                                                        <p className="text-white/30 text-xs font-mono mb-1">Filed On</p>
+                                                        <p className="text-white/70 font-mono text-sm flex items-center gap-2"><Clock size={14} /> {new Date(report.created_at).toLocaleDateString()}</p>
+                                                    </div>
+
+                                                    <div className="min-w-[120px]">
+                                                        {report.status === 'approved' ? (
+                                                            <div className="inline-flex items-center gap-2 text-green-400 bg-green-400/10 border border-green-400/20 px-3 py-1.5 rounded-lg font-mono text-xs uppercase tracking-wider">
+                                                                <CheckCircle size={14} /> Approved
+                                                            </div>
+                                                        ) : report.status === 'rejected' ? (
+                                                            <div className="inline-flex items-center gap-2 text-red-400 bg-red-400/10 border border-red-400/20 px-3 py-1.5 rounded-lg font-mono text-xs uppercase tracking-wider">
+                                                                <AlertTriangle size={14} /> Rejected
+                                                            </div>
+                                                        ) : (
+                                                            <div className="inline-flex items-center gap-2 text-white/50 bg-white/5 border border-white/10 px-3 py-1.5 rounded-lg font-mono text-xs uppercase tracking-wider">
+                                                                <FileWarning size={14} /> Pending
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
                             </div>
                         )}
                     </div>
