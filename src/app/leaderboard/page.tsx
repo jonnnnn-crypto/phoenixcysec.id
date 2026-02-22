@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { createClient } from '@/lib/supabase';
 import Link from 'next/link';
-import { Shield, ShieldAlert } from "lucide-react";
+import { Shield, ShieldAlert, Crown, Flame, Zap, Trophy } from "lucide-react";
 import React from 'react';
 
 type Hunter = {
@@ -15,7 +15,6 @@ type Hunter = {
 
 export default function Leaderboard() {
     const [hunters, setHunters] = useState<Hunter[]>([]);
-    const [isMock, setIsMock] = useState(false);
     const supabase = createClient();
 
     const fetchLeaderboard = async () => {
@@ -24,17 +23,8 @@ export default function Leaderboard() {
             .select('*')
             .order('total_points', { ascending: false });
 
-        if (error || !data || data.length === 0) {
-            setIsMock(true);
-            setHunters([
-                { username: "hunter_1337", total_points: 5400, total_reports: 12, rank: "Ascended Phoenix" },
-                { username: "0xGh0st", total_points: 2150, total_reports: 8, rank: "Inferno Hunter" },
-                { username: "byte_ninja", total_points: 950, total_reports: 5, rank: "Phoenix Hunter" },
-                { username: "newbie_sec", total_points: 350, total_reports: 2, rank: "Flame Hunter" },
-            ]);
-        } else {
-            setIsMock(false);
-            setHunters(data);
+        if (!error && data) {
+            setHunters(data as Hunter[]);
         }
     };
 
@@ -60,12 +50,12 @@ export default function Leaderboard() {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    const rankIcons: Record<string, React.ElementType> = {
-        'Ascended Phoenix': Shield,
-        'Inferno Hunter': ShieldAlert,
-        'Phoenix Hunter': Shield,
-        'Flame Hunter': Shield,
-        'Ember Hunter': Shield,
+    const rankConfig: Record<string, { icon: React.ElementType, color: string, bg: string }> = {
+        'Ascended Phoenix': { icon: Crown, color: 'text-yellow-400', bg: 'bg-yellow-400/10 border-yellow-400/30 shadow-[0_0_15px_rgba(250,204,21,0.2)]' },
+        'Inferno Hunter': { icon: Flame, color: 'text-orange-500', bg: 'bg-orange-500/10 border-orange-500/30 shadow-[0_0_15px_rgba(249,115,22,0.2)]' },
+        'Phoenix Hunter': { icon: Trophy, color: 'text-phoenix', bg: 'bg-phoenix/10 border-phoenix/30 shadow-[0_0_15px_rgba(59,130,246,0.2)]' },
+        'Flame Hunter': { icon: Zap, color: 'text-blue-400', bg: 'bg-blue-400/10 border-blue-400/30' },
+        'Ember Hunter': { icon: Shield, color: 'text-white/50', bg: 'bg-white/5 border-white/10' },
     };
 
     return (
@@ -86,9 +76,12 @@ export default function Leaderboard() {
                     </div>
                 </div>
 
-                {isMock && (
-                    <div className="mb-8 p-4 border border-yellow-500/30 bg-yellow-500/10 text-yellow-500 text-sm font-mono text-center">
-                        Database connection missing or empty view. Displaying mock data for layout purposes.
+                {hunters.length === 0 && (
+                    <div className="mb-8 p-12 border border-white/10 bg-[#111] text-center shadow-2xl relative overflow-hidden">
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-phoenix/5 blur-[50px]" />
+                        <ShieldAlert size={48} className="text-white/20 mx-auto mb-4" />
+                        <h3 className="font-display text-xl text-white mb-2">No Hunters Ranked</h3>
+                        <p className="font-mono text-sm text-white/50">There are no approved reports on the leaderboard yet. Be the first to secure the community.</p>
                     </div>
                 )}
 
@@ -106,13 +99,14 @@ export default function Leaderboard() {
                             </thead>
                             <tbody className="divide-y divide-white/5 text-sm">
                                 {hunters.map((hunter, index) => {
-                                    const Icon = rankIcons[hunter.rank] || Shield;
+                                    const config = rankConfig[hunter.rank] || rankConfig['Ember Hunter'];
+                                    const Icon = config.icon;
                                     const isTop3 = index < 3;
 
                                     return (
                                         <tr key={hunter.username} className="hover:bg-white/[0.02] transition-colors group">
                                             <td className="px-6 py-4 whitespace-nowrap">
-                                                <span className={`font-mono text-lg font-bold ${index === 0 ? "text-yellow-500 drop-shadow-[0_0_10px_rgba(234,179,8,0.5)]" :
+                                                <span className={`font-mono text-lg font-bold ${index === 0 ? "text-yellow-400 drop-shadow-[0_0_10px_rgba(250,204,21,0.5)]" :
                                                     index === 1 ? "text-gray-300 drop-shadow-[0_0_10px_rgba(209,213,219,0.5)]" :
                                                         index === 2 ? "text-amber-600 drop-shadow-[0_0_10px_rgba(217,119,6,0.5)]" :
                                                             "text-white/30"
@@ -130,8 +124,8 @@ export default function Leaderboard() {
                                                 </Link>
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap">
-                                                <div className="inline-flex items-center gap-2 px-2 py-1 rounded border border-white/10 bg-charcoal text-[10px] font-mono uppercase text-white/70">
-                                                    <Icon size={12} className={hunter.rank === 'Ascended Phoenix' ? 'text-phoenix' : 'text-white/50'} />
+                                                <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-sm border bg-[#0a0a0a] text-[10px] font-mono uppercase tracking-wider font-bold transition-all ${config.bg} ${config.color}`}>
+                                                    <Icon size={14} className={config.color} />
                                                     {hunter.rank}
                                                 </div>
                                             </td>
