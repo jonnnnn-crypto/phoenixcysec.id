@@ -543,10 +543,10 @@ export default function AdminDashboard() {
                                                     <div className="grid grid-cols-2 gap-3">
                                                         <div>
                                                             <div className="flex justify-between items-center mb-1.5 px-1">
-                                                                <label className="block text-[8px] font-mono text-white/20 uppercase">Deployment Time</label>
+                                                                <label className="block text-[8px] font-mono text-white/20 uppercase">Deployment Time (WIB)</label>
                                                                 <div className="flex bg-black/40 border border-white/5 p-0.5 rounded-md overflow-hidden">
                                                                     <button type="button" onClick={setNowTime} className="text-[7px] font-mono text-white/30 hover:text-white hover:bg-white/5 px-1.5 py-0.5 transition-all">NOW</button>
-                                                                    <button type="button" onClick={() => setQuickDate('tomorrow')} className="text-[7px] font-mono text-white/30 hover:text-white hover:bg-white/5 px-1.5 py-0.5 border-l border-white/5 transition-all">TMRW</button>
+                                                                    <button type="button" onClick={() => setQuickDate('tomorrow')} className="text-[7px] font-mono text-white/30 hover:text-white hover:bg-white/5 px-1.5 py-0.5 border-l border-white/5 transition-all">BESOK</button>
                                                                 </div>
                                                             </div>
 
@@ -574,10 +574,25 @@ export default function AdminDashboard() {
                                                                             initial={{ opacity: 0, scale: 0.98, y: -5 }}
                                                                             animate={{ opacity: 1, scale: 1, y: 0 }}
                                                                             exit={{ opacity: 0, scale: 0.98, y: -5 }}
-                                                                            className="absolute right-0 top-full mt-2 w-72 bg-[#0a0a0a] border border-white/10 rounded-2xl shadow-[0_25px_50px_rgba(0,0,0,0.8)] z-50 p-5 backdrop-blur-3xl max-h-[400px] overflow-y-auto scrollbar-thin scrollbar-thumb-white/10"
+                                                                            className="absolute right-0 top-full mt-2 w-72 bg-[#0a0a0a] border border-white/10 rounded-2xl shadow-[0_25px_50px_rgba(0,0,0,0.8)] z-50 p-5 backdrop-blur-3xl max-h-[450px] overflow-y-auto scrollbar-thin scrollbar-thumb-white/10"
                                                                         >
                                                                             <div className="mb-4 pb-4 border-b border-white/5">
-                                                                                <div className="text-[7px] font-mono text-white/20 uppercase mb-3 tracking-[0.3em]">Select Hour (WIB)</div>
+                                                                                <div className="text-[7px] font-mono text-white/20 uppercase mb-3 tracking-[0.3em]">Sesi Cepat (WIB)</div>
+                                                                                <div className="grid grid-cols-3 gap-2 mb-2">
+                                                                                    {['19:00', '20:00', '21:00'].map(time => (
+                                                                                        <button
+                                                                                            key={time}
+                                                                                            type="button"
+                                                                                            onClick={() => setQuickTime(time)}
+                                                                                            className="py-2 px-1 text-[9px] font-mono bg-white/5 border border-white/5 rounded-lg text-white/40 hover:bg-phoenix hover:text-white hover:border-phoenix transition-all"
+                                                                                        >
+                                                                                            {time}
+                                                                                        </button>
+                                                                                    ))}
+                                                                                </div>
+                                                                            </div>
+                                                                            <div className="mb-4 pb-4 border-b border-white/5">
+                                                                                <div className="text-[7px] font-mono text-white/20 uppercase mb-3 tracking-[0.3em]">Pilih Jam (WIB)</div>
                                                                                 <div className="grid grid-cols-6 gap-1">
                                                                                     {Array.from({ length: 24 }).map((_, i) => {
                                                                                         const h = String(i).padStart(2, '0');
@@ -596,7 +611,7 @@ export default function AdminDashboard() {
                                                                                 </div>
                                                                             </div>
                                                                             <div>
-                                                                                <div className="text-[7px] font-mono text-white/20 uppercase mb-3 tracking-[0.3em]">Select Minute</div>
+                                                                                <div className="text-[7px] font-mono text-white/20 uppercase mb-3 tracking-[0.3em]">Pilih Menit</div>
                                                                                 <div className="grid grid-cols-6 gap-1">
                                                                                     {[0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55].map((m) => {
                                                                                         const min = String(m).padStart(2, '0');
