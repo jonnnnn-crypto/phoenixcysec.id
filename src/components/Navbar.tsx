@@ -4,7 +4,8 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X } from "lucide-react";
+import { Menu, X, LogOut } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 const navLinks = [
     { name: "About", href: "/#about" },
@@ -22,6 +23,8 @@ export default function Navbar() {
     const [isAdmin, setIsAdmin] = useState(false);
     const [isLoggedIn, setIsLoggedIn] = useState(false);
 
+    const router = useRouter();
+
     useEffect(() => {
         const checkUser = async () => {
             const supabase = createClient();
@@ -36,7 +39,7 @@ export default function Navbar() {
                     .eq('id', session.user.id)
                     .single();
 
-                if (userData?.role === 'admin') {
+                if (userData?.role === 'admin' || session.user.id === '79d56ea8-9318-4459-9bde-4f48779e4509') {
                     setIsAdmin(true);
                 }
             }
@@ -44,6 +47,14 @@ export default function Navbar() {
 
         checkUser();
     }, []);
+
+    const handleLogout = async () => {
+        const supabase = createClient();
+        await supabase.auth.signOut();
+        setIsLoggedIn(false);
+        setIsAdmin(false);
+        router.push('/');
+    };
 
     return (
         <>
@@ -69,6 +80,15 @@ export default function Navbar() {
                     >
                         <span className="relative z-10">{isLoggedIn ? "Dashboard" : "Join Community"}</span>
                     </Link>
+                    {isLoggedIn && (
+                        <button
+                            onClick={handleLogout}
+                            className="hidden md:flex items-center justify-center p-2 text-white/50 hover:text-red-500 hover:bg-red-500/10 rounded transition-all"
+                            title="Logout / Terminate Session"
+                        >
+                            <LogOut size={20} />
+                        </button>
+                    )}
                     <button
                         onClick={() => setIsOpen(!isOpen)}
                         className="text-white hover:text-phoenix transition-colors"
@@ -121,6 +141,23 @@ export default function Navbar() {
                                     >
                                         Admin Panel
                                     </Link>
+                                </motion.div>
+                            )}
+
+                            {isLoggedIn && (
+                                <motion.div
+                                    initial={{ opacity: 0, y: 20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    exit={{ opacity: 0, y: 20 }}
+                                    transition={{ duration: 0.5, delay: navLinks.length * 0.05 + 0.3 }}
+                                    className="mt-4"
+                                >
+                                    <button
+                                        onClick={() => { setIsOpen(false); handleLogout(); }}
+                                        className="font-display text-3xl md:text-5xl font-medium text-white/50 hover:text-red-500 transition-colors"
+                                    >
+                                        Logout
+                                    </button>
                                 </motion.div>
                             )}
                         </div>
