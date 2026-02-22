@@ -26,6 +26,14 @@ type Hunter = {
     } | null;
 };
 
+const rankConfig: Record<string, { image: string, color: string, bg: string }> = {
+    'Ascended Phoenix': { image: '/rank-ascended.png', color: 'text-yellow-400', bg: 'bg-yellow-400/10 border-yellow-400/30 shadow-[0_0_15px_rgba(250,204,21,0.2)]' },
+    'Inferno Hunter': { image: '/rank-inferno.png', color: 'text-orange-500', bg: 'bg-orange-500/10 border-orange-500/30 shadow-[0_0_15px_rgba(249,115,22,0.2)]' },
+    'Phoenix Hunter': { image: '/rank-phoenix.png', color: 'text-phoenix', bg: 'bg-phoenix/10 border-phoenix/30 shadow-[0_0_15px_rgba(59,130,246,0.2)]' },
+    'Flame Hunter': { image: '/rank-flame.png', color: 'text-blue-400', bg: 'bg-blue-400/10 border-blue-400/30' },
+    'Ember Hunter': { image: '/rank-ember.png', color: 'text-white/50', bg: 'bg-white/5 border-white/10' },
+};
+
 function PodiumItem({ hunter, position, height }: { hunter: Hunter, position: number, height: string }) {
     const isFirst = position === 1;
     const isSecond = position === 2;
@@ -36,6 +44,7 @@ function PodiumItem({ hunter, position, height }: { hunter: Hunter, position: nu
     const badgeText = isFirst ? 'text-black' : isSecond ? 'text-black' : 'text-white';
 
     const avatarSrc = hunter.avatar || `https://api.dicebear.com/9.x/avataaars/svg?seed=${hunter.username}`;
+    const config = rankConfig[hunter.rank] || rankConfig['Ember Hunter'];
 
     return (
         <div className="flex flex-col items-center justify-end w-28 md:w-36 group relative">
@@ -48,8 +57,12 @@ function PodiumItem({ hunter, position, height }: { hunter: Hunter, position: nu
                 </div>
             </Link>
             <div className={`w-full flex flex-col items-center justify-start rounded-t-xl border-t border-l border-r backdrop-blur-md relative ${color} ${height} pt-8 pb-4 px-2`}>
-                <span className="font-bold text-white truncate w-full text-center text-sm md:text-base mt-2">{hunter.username}</span>
-                <span className="font-mono text-xs md:text-sm font-bold mt-1 text-phoenix">{hunter.total_points.toLocaleString()} pts</span>
+                <div className={`inline-flex items-center justify-center gap-1.5 px-2 py-0.5 mt-1 mb-1 rounded-sm border bg-[#0a0a0a] text-[9px] font-mono uppercase tracking-wider font-bold ${config.bg} ${config.color} drop-shadow-md z-10 w-full`}>
+                    <Image src={config.image} alt={hunter.rank} width={12} height={12} className="object-contain" />
+                    <span className="truncate">{hunter.rank}</span>
+                </div>
+                <span className="font-bold text-white w-full text-center text-sm md:text-base truncate">{hunter.username}</span>
+                <span className="font-mono text-xs md:text-sm font-bold mt-0.5 text-phoenix">{hunter.total_points.toLocaleString()} pts</span>
             </div>
         </div>
     );
@@ -140,14 +153,6 @@ export default function Leaderboard() {
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
-
-    const rankConfig: Record<string, { image: string, color: string, bg: string }> = {
-        'Ascended Phoenix': { image: '/rank-ascended.png', color: 'text-yellow-400', bg: 'bg-yellow-400/10 border-yellow-400/30 shadow-[0_0_15px_rgba(250,204,21,0.2)]' },
-        'Inferno Hunter': { image: '/rank-inferno.png', color: 'text-orange-500', bg: 'bg-orange-500/10 border-orange-500/30 shadow-[0_0_15px_rgba(249,115,22,0.2)]' },
-        'Phoenix Hunter': { image: '/rank-phoenix.png', color: 'text-phoenix', bg: 'bg-phoenix/10 border-phoenix/30 shadow-[0_0_15px_rgba(59,130,246,0.2)]' },
-        'Flame Hunter': { image: '/rank-flame.png', color: 'text-blue-400', bg: 'bg-blue-400/10 border-blue-400/30' },
-        'Ember Hunter': { image: '/rank-ember.png', color: 'text-white/50', bg: 'bg-white/5 border-white/10' },
-    };
 
     return (
         <div className="min-h-screen pt-32 pb-24 px-6 md:px-12 bg-charcoal-dark border-t border-white/5 relative">
