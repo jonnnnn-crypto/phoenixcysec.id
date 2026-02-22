@@ -550,8 +550,8 @@ export default function AdminDashboard() {
                                                                 </div>
                                                             </div>
 
-                                                            <div className="flex gap-1.5 mb-2.5 px-0.5">
-                                                                {['19:00', '20:00', '21:00'].map(t => {
+                                                            <div className="grid grid-cols-5 gap-1.5 mb-2.5 px-0.5">
+                                                                {['14:00', '16:00', '19:00', '20:00', '21:00'].map(t => {
                                                                     const [h, m] = t.split(':');
                                                                     const isActive = newEventDate.includes(`T${h}:${m}`);
                                                                     return (
@@ -559,7 +559,7 @@ export default function AdminDashboard() {
                                                                             key={t}
                                                                             type="button"
                                                                             onClick={() => setQuickTime(t)}
-                                                                            className={`flex-1 py-2 border font-mono text-[9px] font-bold rounded-lg transition-all ${isActive ? 'bg-phoenix border-phoenix text-white shadow-[0_0_10px_rgba(59,130,246,0.3)]' : 'bg-black/40 border-white/5 text-white/30 hover:border-white/20 hover:text-white'}`}
+                                                                            className={`py-2 px-1 border font-mono text-[8px] font-bold rounded-lg transition-all ${isActive ? 'bg-phoenix border-phoenix text-white shadow-[0_0_10px_rgba(59,130,246,0.2)]' : 'bg-black/40 border-white/5 text-white/30 hover:border-white/20 hover:text-white'}`}
                                                                         >
                                                                             {t}
                                                                         </button>
@@ -651,9 +651,15 @@ export default function AdminDashboard() {
                                                                 </AnimatePresence>
 
                                                                 <div className="bg-white/[0.02] border-x border-b border-white/10 rounded-b-xl px-2.5 py-2 flex justify-between items-center">
-                                                                    <div className="flex gap-1.5">
-                                                                        <button type="button" onClick={() => adjustTime(60)} className="text-[7px] font-mono text-white/20 hover:text-white px-1.5 py-0.5 bg-white/5 rounded transition-all">+1H</button>
-                                                                        <button type="button" onClick={() => adjustTime(15)} className="text-[7px] font-mono text-white/20 hover:text-white px-1.5 py-0.5 bg-white/5 rounded transition-all">+15M</button>
+                                                                    <div className="flex gap-1">
+                                                                        <div className="flex bg-black/40 border border-white/5 rounded-md p-0.5 h-6">
+                                                                            <button type="button" onClick={() => adjustTime(-60)} className="text-[7px] font-mono text-white/20 hover:text-white px-1.5 hover:bg-white/5 transition-all">-H</button>
+                                                                            <button type="button" onClick={() => adjustTime(60)} className="text-[7px] font-mono text-white/20 hover:text-white px-1.5 border-l border-white/5 hover:bg-white/5 transition-all">+H</button>
+                                                                        </div>
+                                                                        <div className="flex bg-black/40 border border-white/5 rounded-md p-0.5 h-6">
+                                                                            <button type="button" onClick={() => adjustTime(-15)} className="text-[7px] font-mono text-white/20 hover:text-white px-1.5 hover:bg-white/5 transition-all">-M</button>
+                                                                            <button type="button" onClick={() => adjustTime(15)} className="text-[7px] font-mono text-white/20 hover:text-white px-1.5 border-l border-white/5 hover:bg-white/5 transition-all">+M</button>
+                                                                        </div>
                                                                     </div>
                                                                     <div className="text-[8px] font-mono text-phoenix/80 tracking-widest uppercase font-bold">
                                                                         {newEventDate ? new Date(newEventDate).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' }) : '---'}
