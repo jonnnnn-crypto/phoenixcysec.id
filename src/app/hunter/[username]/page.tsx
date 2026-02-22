@@ -4,6 +4,8 @@ import Link from 'next/link';
 import React from 'react';
 
 // Simple server-side supabase client (read-only for public data)
+export const dynamic = 'force-dynamic';
+
 const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co',
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder'
