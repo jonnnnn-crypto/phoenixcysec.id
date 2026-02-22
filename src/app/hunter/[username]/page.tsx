@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
-import { Shield, Medal, CheckCircle, Calendar, ShieldAlert, Globe, Twitter, Github } from "lucide-react";
+import { Medal, CheckCircle, Calendar, Globe, Twitter, Github } from "lucide-react";
 import Link from 'next/link';
 import React from 'react';
 
@@ -36,7 +36,8 @@ export default async function HunterProfile({ params }: { params: { username: st
         .maybeSingle();
 
     // Fetch Recent Approved Reports for this specific user
-    let recentReports = [];
+    type Report = { id: string; target: string; vulnerability: string; severity: string; points: number; created_at: string };
+    let recentReports: Report[] = [];
     if (userData?.id) {
         const { data: reports } = await supabase
             .from('whitehat_reports')
@@ -46,18 +47,18 @@ export default async function HunterProfile({ params }: { params: { username: st
             .order('created_at', { ascending: false })
             .limit(5);
 
-        recentReports = reports || [];
+        recentReports = (reports || []) as Report[];
     }
 
     // If we don't have real DB plugged in yet, we'll provide fallback data
     const isMock = userError || !userData;
 
-    const rankIcons: Record<string, React.ElementType> = {
-        'Ascended Phoenix': Shield,
-        'Inferno Hunter': ShieldAlert,
-        'Phoenix Hunter': Shield,
-        'Flame Hunter': Shield,
-        'Ember Hunter': Shield,
+    const rankImages: Record<string, string> = {
+        'Ascended Phoenix': '/rank-ascended.png',
+        'Inferno Hunter': '/rank-inferno.png',
+        'Phoenix Hunter': '/rank-phoenix.png',
+        'Flame Hunter': '/rank-flame.png',
+        'Ember Hunter': '/rank-ember.png',
     };
 
     const rank = hunterStats?.rank || "Ember Hunter";
@@ -76,7 +77,7 @@ export default async function HunterProfile({ params }: { params: { username: st
     const linkedinLink = profileDetails?.linkedin_url || null;
     const websiteLink = profileDetails?.website_url || null;
 
-    const RankIcon = rankIcons[rank] || Shield;
+    const RankImage = rankImages[rank] || '/rank-ember.png';
 
     return (
         <div className="min-h-screen pt-32 pb-24 px-6 md:px-12 bg-charcoal-dark border-t border-white/5 relative">
@@ -112,7 +113,7 @@ export default async function HunterProfile({ params }: { params: { username: st
 
                     <div className="flex-1 text-center md:text-left">
                         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-phoenix/30 bg-phoenix/10 text-phoenix text-xs font-mono uppercase mb-4">
-                            <RankIcon size={14} /> {rank}
+                            <img src={RankImage} alt={rank} className="w-4 h-4 object-contain" /> {rank}
                         </div>
                         <h1 className="font-display font-medium text-4xl text-white mb-2">{username}</h1>
                         <p className="text-white/60 font-sans font-light max-w-lg mb-6 leading-relaxed">
@@ -184,12 +185,12 @@ export default async function HunterProfile({ params }: { params: { username: st
                             <h3 className="font-display font-medium text-white text-xl mb-4 border-b border-white/10 pb-4">Badges</h3>
                             <div className="grid grid-cols-3 gap-4">
                                 <div className="aspect-square bg-charcoal border border-white/5 flex items-center justify-center group relative cursor-help">
-                                    <Shield size={24} className="text-phoenix opacity-50 group-hover:opacity-100 transition-opacity" />
+                                    <img src="/badge-first-report.png" alt="First Report" className="w-10 h-10 object-contain opacity-50 group-hover:opacity-100 transition-opacity" />
                                     <div className="absolute -top-10 left-1/2 -translate-x-1/2 text-[10px] font-mono whitespace-nowrap bg-white text-black px-2 py-1 opacity-0 group-hover:opacity-100 transition-opacity">First Report</div>
                                 </div>
                                 {reports >= 5 && (
                                     <div className="aspect-square bg-charcoal border border-white/5 flex items-center justify-center group relative cursor-help">
-                                        <ShieldAlert size={24} className="text-yellow-500 opacity-50 group-hover:opacity-100 transition-opacity" />
+                                        <img src="/badge-veteran.png" alt="Veteran Hunter" className="w-10 h-10 object-contain opacity-50 group-hover:opacity-100 transition-opacity" />
                                         <div className="absolute -top-10 left-1/2 -translate-x-1/2 text-[10px] font-mono whitespace-nowrap bg-white text-black px-2 py-1 opacity-0 group-hover:opacity-100 transition-opacity">Veteran Hunter</div>
                                     </div>
                                 )}

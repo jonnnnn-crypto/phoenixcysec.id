@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { createClient } from '@/lib/supabase';
 import Link from 'next/link';
-import { Shield, ShieldAlert, Crown, Flame, Zap, Trophy, Github, Twitter, Globe, FileWarning } from "lucide-react";
+import { Github, Twitter, Globe, FileWarning, ShieldAlert } from "lucide-react";
 import React from 'react';
 
 type Hunter = {
@@ -106,12 +106,12 @@ export default function Leaderboard() {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    const rankConfig: Record<string, { icon: React.ElementType, color: string, bg: string }> = {
-        'Ascended Phoenix': { icon: Crown, color: 'text-yellow-400', bg: 'bg-yellow-400/10 border-yellow-400/30 shadow-[0_0_15px_rgba(250,204,21,0.2)]' },
-        'Inferno Hunter': { icon: Flame, color: 'text-orange-500', bg: 'bg-orange-500/10 border-orange-500/30 shadow-[0_0_15px_rgba(249,115,22,0.2)]' },
-        'Phoenix Hunter': { icon: Trophy, color: 'text-phoenix', bg: 'bg-phoenix/10 border-phoenix/30 shadow-[0_0_15px_rgba(59,130,246,0.2)]' },
-        'Flame Hunter': { icon: Zap, color: 'text-blue-400', bg: 'bg-blue-400/10 border-blue-400/30' },
-        'Ember Hunter': { icon: Shield, color: 'text-white/50', bg: 'bg-white/5 border-white/10' },
+    const rankConfig: Record<string, { image: string, color: string, bg: string }> = {
+        'Ascended Phoenix': { image: '/rank-ascended.png', color: 'text-yellow-400', bg: 'bg-yellow-400/10 border-yellow-400/30 shadow-[0_0_15px_rgba(250,204,21,0.2)]' },
+        'Inferno Hunter': { image: '/rank-inferno.png', color: 'text-orange-500', bg: 'bg-orange-500/10 border-orange-500/30 shadow-[0_0_15px_rgba(249,115,22,0.2)]' },
+        'Phoenix Hunter': { image: '/rank-phoenix.png', color: 'text-phoenix', bg: 'bg-phoenix/10 border-phoenix/30 shadow-[0_0_15px_rgba(59,130,246,0.2)]' },
+        'Flame Hunter': { image: '/rank-flame.png', color: 'text-blue-400', bg: 'bg-blue-400/10 border-blue-400/30' },
+        'Ember Hunter': { image: '/rank-ember.png', color: 'text-white/50', bg: 'bg-white/5 border-white/10' },
     };
 
     return (
@@ -158,7 +158,6 @@ export default function Leaderboard() {
                             <tbody className="divide-y divide-white/5 text-sm">
                                 {hunters.map((hunter, index) => {
                                     const config = rankConfig[hunter.rank] || rankConfig['Ember Hunter'];
-                                    const Icon = config.icon;
                                     const isTop3 = index < 3;
 
                                     return (
@@ -183,7 +182,7 @@ export default function Leaderboard() {
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap">
                                                 <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-sm border bg-[#0a0a0a] text-[10px] font-mono uppercase tracking-wider font-bold transition-all ${config.bg} ${config.color}`}>
-                                                    <Icon size={14} className={config.color} />
+                                                    <img src={config.image} alt={hunter.rank} className="w-3.5 h-3.5 object-contain" />
                                                     {hunter.rank}
                                                 </div>
                                             </td>

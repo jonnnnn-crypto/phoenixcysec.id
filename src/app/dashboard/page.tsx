@@ -190,12 +190,23 @@ export default function Dashboard() {
                                     <div className="flex items-center gap-2 text-white/50 text-sm">
                                         <Award size={16} className="text-phoenix" /> Rank
                                     </div>
-                                    <div className={`px-2.5 py-1 text-xs font-mono uppercase tracking-wider rounded border ${stats.rank === 'Ascended Phoenix' ? 'bg-purple-500/10 text-purple-400 border-purple-500/30' :
+                                    <div className={`flex items-center gap-2 px-2.5 py-1 text-xs font-mono uppercase tracking-wider rounded border ${stats.rank === 'Ascended Phoenix' ? 'bg-purple-500/10 text-purple-400 border-purple-500/30' :
                                         stats.rank === 'Inferno Hunter' ? 'bg-red-500/10 text-red-500 border-red-500/30' :
                                             stats.rank === 'Phoenix Hunter' ? 'bg-orange-500/10 text-orange-400 border-orange-500/30' :
                                                 stats.rank === 'Flame Hunter' ? 'bg-blue-500/10 text-blue-400 border-blue-500/30' :
                                                     'bg-white/5 text-white/50 border-white/10'
                                         }`}>
+                                        <img
+                                            src={
+                                                stats.rank === 'Ascended Phoenix' ? '/rank-ascended.png' :
+                                                    stats.rank === 'Inferno Hunter' ? '/rank-inferno.png' :
+                                                        stats.rank === 'Phoenix Hunter' ? '/rank-phoenix.png' :
+                                                            stats.rank === 'Flame Hunter' ? '/rank-flame.png' :
+                                                                '/rank-ember.png'
+                                            }
+                                            alt={stats.rank}
+                                            className="w-4 h-4 object-contain"
+                                        />
                                         {stats.rank}
                                     </div>
                                 </div>
