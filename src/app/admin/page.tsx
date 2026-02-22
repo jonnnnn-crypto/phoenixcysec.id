@@ -78,6 +78,35 @@ export default function AdminDashboard() {
     const router = useRouter();
     const supabase = createClient();
 
+    const setQuickDate = (type: 'tomorrow' | 'saturday' | 'next-week') => {
+        const date = new Date();
+        if (type === 'tomorrow') {
+            date.setDate(date.getDate() + 1);
+        } else if (type === 'saturday') {
+            const day = date.getDay();
+            const diff = (6 - day + 7) % 7;
+            date.setDate(date.getDate() + (diff === 0 ? 7 : diff));
+        } else if (type === 'next-week') {
+            date.setDate(date.getDate() + 7);
+        }
+
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        const currentTime = newEventDate.split('T')[1] || "19:00";
+        setNewEventDate(`${year}-${month}-${day}T${currentTime}`);
+    };
+
+    const setQuickTime = (time: string) => {
+        const currentDate = newEventDate.split('T')[0];
+        if (currentDate) {
+            setNewEventDate(`${currentDate}T${time}`);
+        } else {
+            const today = new Date().toISOString().split('T')[0];
+            setNewEventDate(`${today}T${time}`);
+        }
+    };
+
     const fetchDashboardData = async () => {
         const { data: reportsData } = await supabase
             .from('whitehat_reports')
@@ -476,12 +505,23 @@ export default function AdminDashboard() {
                                             </div>
                                             <div className="grid grid-cols-2 gap-4">
                                                 <div>
-                                                    <label className="block text-[10px] font-mono text-white/30 uppercase mb-2">Date & Time</label>
+                                                    <div className="flex justify-between items-center mb-2">
+                                                        <label className="block text-[10px] font-mono text-white/30 uppercase">Date & Time</label>
+                                                        <div className="flex gap-1">
+                                                            <button type="button" onClick={() => setQuickDate('tomorrow')} className="text-[9px] font-mono text-phoenix hover:text-white border border-phoenix/20 px-1 rounded transition-colors">TMRW</button>
+                                                            <button type="button" onClick={() => setQuickDate('saturday')} className="text-[9px] font-mono text-phoenix hover:text-white border border-phoenix/20 px-1 rounded transition-colors">SAT</button>
+                                                        </div>
+                                                    </div>
                                                     <input type="datetime-local" required value={newEventDate} onChange={e => setNewEventDate(e.target.value)} className="w-full bg-black border border-white/10 p-4 text-white font-mono text-sm outline-none focus:border-phoenix rounded" />
+                                                    <div className="flex gap-2 mt-2">
+                                                        <button type="button" onClick={() => setQuickTime('19:00')} className="text-[9px] font-mono text-white/40 hover:text-white bg-white/5 px-2 py-1 rounded transition-colors">19:00</button>
+                                                        <button type="button" onClick={() => setQuickTime('20:00')} className="text-[9px] font-mono text-white/40 hover:text-white bg-white/5 px-2 py-1 rounded transition-colors">20:00</button>
+                                                        <button type="button" onClick={() => setQuickTime('21:00')} className="text-[9px] font-mono text-white/40 hover:text-white bg-white/5 px-2 py-1 rounded transition-colors">21:00</button>
+                                                    </div>
                                                 </div>
                                                 <div>
                                                     <label className="block text-[10px] font-mono text-white/30 uppercase mb-2">Capacity</label>
-                                                    <input type="number" required value={newEventCapacity} onChange={e => setNewEventCapacity(parseInt(e.target.value))} className="w-full bg-black border border-white/10 p-4 text-white font-mono text-sm outline-none focus:border-phoenix rounded" />
+                                                    <input type="number" required value={newEventCapacity} onChange={e => setNewEventCapacity(parseInt(e.target.value))} className="w-full bg-black border border-white/10 p-4 text-white font-mono text-sm outline-none focus:border-phoenix rounded" placeholder="50" />
                                                 </div>
                                             </div>
                                             <div className="grid grid-cols-2 gap-4">
