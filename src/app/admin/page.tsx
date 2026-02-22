@@ -467,51 +467,51 @@ export default function AdminDashboard() {
                             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-12">
                                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
                                     {/* Left: Registration Triage Center */}
-                                    <div className="lg:col-span-4 space-y-6">
-                                        <div className="flex items-center justify-between mb-2">
-                                            <h3 className="text-sm font-mono font-bold uppercase tracking-[0.3em] text-white/40 flex items-center gap-2">
-                                                <Users size={14} className="text-phoenix" /> Application Queue
+                                    <div className="lg:col-span-4 space-y-4">
+                                        <div className="flex items-center justify-between mb-1 px-1">
+                                            <h3 className="text-[10px] font-mono font-bold uppercase tracking-[0.4em] text-white/30 flex items-center gap-2">
+                                                <Users size={12} className="text-phoenix/60" /> Applications
                                             </h3>
-                                            <span className="px-2 py-0.5 bg-phoenix/10 text-phoenix text-[9px] font-mono border border-phoenix/20 rounded-full">{registrations.length}</span>
+                                            <span className="text-[9px] font-mono text-phoenix/80 bg-phoenix/5 border border-phoenix/10 px-2 py-0.5 rounded-full">{registrations.length}</span>
                                         </div>
 
-                                        <div className="space-y-3 max-h-[700px] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-white/5">
+                                        <div className="space-y-2 max-h-[750px] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-white/5">
                                             {registrations.length === 0 ? (
-                                                <div className="py-20 text-center border border-dashed border-white/5 rounded-2xl bg-black/20">
-                                                    <Users size={40} className="text-white/5 mx-auto mb-4" />
-                                                    <p className="font-mono text-[10px] text-white/20 uppercase tracking-widest leading-relaxed">System Idle.<br />No pending applications found.</p>
+                                                <div className="py-16 text-center border border-white/5 rounded-xl bg-black/40">
+                                                    <Users size={32} className="text-white/5 mx-auto mb-3" />
+                                                    <p className="font-mono text-[9px] text-white/10 uppercase tracking-widest leading-relaxed">No pending student<br />activity detected.</p>
                                                 </div>
                                             ) : (
                                                 registrations.map(reg => (
-                                                    <div key={reg.id} className="p-5 bg-[#0d0d0d] border border-white/5 hover:border-phoenix/30 transition-all rounded-xl relative group overflow-hidden">
-                                                        <div className="absolute top-0 right-0 p-2 opacity-5 group-hover:opacity-20 transition-all">
-                                                            <Users size={40} />
-                                                        </div>
+                                                    <div key={reg.id} className="p-4 bg-black/40 border border-white/5 hover:border-phoenix/40 transition-all rounded-xl relative group">
                                                         <div className="relative z-10">
-                                                            <div className="flex items-center gap-3 mb-3">
-                                                                <div className="w-8 h-8 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center font-mono text-xs text-phoenix">
-                                                                    {reg.username.charAt(0).toUpperCase()}
+                                                            <div className="flex items-center justify-between mb-4">
+                                                                <div className="flex items-center gap-2">
+                                                                    <div className="w-6 h-6 rounded bg-phoenix/10 border border-phoenix/20 flex items-center justify-center font-mono text-[10px] text-phoenix">
+                                                                        {reg.username.charAt(0).toUpperCase()}
+                                                                    </div>
+                                                                    <div className="font-mono text-[11px] font-bold text-white/90">@{reg.username}</div>
                                                                 </div>
-                                                                <div className="font-mono text-xs font-bold text-white tracking-tight">@{reg.username}</div>
+                                                                <div className="text-[8px] font-mono text-white/20 uppercase tracking-widest">Student v2.1</div>
                                                             </div>
 
-                                                            <div className="mb-4">
-                                                                <div className="text-[8px] font-mono text-white/20 uppercase mb-1">Requested Access To:</div>
-                                                                <div className="text-[10px] font-mono font-bold text-white/80 line-clamp-1">{reg.events?.title}</div>
+                                                            <div className="mb-4 p-2.5 bg-white/2 border border-white/5 rounded-lg">
+                                                                <div className="text-[7px] font-mono text-white/20 uppercase mb-1">Target Operation</div>
+                                                                <div className="text-[9px] font-mono font-bold text-white/70 truncate">{reg.events?.title}</div>
                                                             </div>
 
                                                             <div className="grid grid-cols-2 gap-2">
                                                                 <button
                                                                     onClick={() => handleModerateRegistration(reg.id, 'approved')}
                                                                     disabled={!!loadingAction}
-                                                                    className="py-2.5 bg-green-500/10 border border-green-500/30 text-green-500 text-[9px] font-mono font-bold uppercase tracking-widest hover:bg-green-500 hover:text-white transition-all rounded disabled:opacity-50"
+                                                                    className="py-2 bg-green-500/5 border border-green-500/20 text-green-500/70 text-[8px] font-mono font-bold uppercase tracking-widest hover:bg-green-500 hover:text-white transition-all rounded-md disabled:opacity-50"
                                                                 >
                                                                     Authorize
                                                                 </button>
                                                                 <button
                                                                     onClick={() => handleModerateRegistration(reg.id, 'rejected')}
                                                                     disabled={!!loadingAction}
-                                                                    className="py-2.5 bg-red-500/10 border border-red-500/30 text-red-500 text-[9px] font-mono font-bold uppercase tracking-widest hover:bg-red-500 hover:text-white transition-all rounded disabled:opacity-50"
+                                                                    className="py-2 bg-red-500/5 border border-red-500/20 text-red-500/70 text-[8px] font-mono font-bold uppercase tracking-widest hover:bg-red-500 hover:text-white transition-all rounded-md disabled:opacity-50"
                                                                 >
                                                                     Reject
                                                                 </button>
@@ -524,185 +524,185 @@ export default function AdminDashboard() {
                                     </div>
 
                                     {/* Right: Management Center */}
-                                    <div className="lg:col-span-8 space-y-8">
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                    <div className="lg:col-span-8 space-y-6">
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                             {/* Create Class Card */}
-                                            <div className="p-8 bg-[#0d0d0d] border border-white/5 rounded-2xl relative overflow-hidden group">
-                                                <div className="absolute -right-10 -top-10 opacity-[0.03] group-hover:opacity-[0.05] transition-all rotate-12">
-                                                    <Calendar size={200} />
+                                            <div className="p-6 bg-black/40 border border-white/5 rounded-2xl relative overflow-hidden group">
+                                                <div className="absolute -right-6 -top-6 opacity-[0.02] group-hover:opacity-[0.04] transition-all rotate-12">
+                                                    <Calendar size={180} />
                                                 </div>
-                                                <h3 className="text-sm font-mono font-bold uppercase tracking-[0.3em] text-white/40 mb-8 flex items-center gap-2">
-                                                    <Calendar className="text-phoenix" size={14} /> Deployment Center
+                                                <h3 className="text-[10px] font-mono font-bold uppercase tracking-[0.4em] text-white/30 mb-6 flex items-center gap-2">
+                                                    <Calendar className="text-phoenix/60" size={12} /> Deployment Center
                                                 </h3>
-                                                <form onSubmit={handleAddEvent} className="space-y-4">
+                                                <form onSubmit={handleAddEvent} className="space-y-3.5">
                                                     <div>
-                                                        <label className="block text-[9px] font-mono text-white/30 uppercase mb-2">Operation Title</label>
-                                                        <input type="text" required value={newEventTitle} onChange={e => setNewEventTitle(e.target.value)} className="w-full bg-black border border-white/10 p-4 text-white font-mono text-xs outline-none focus:border-phoenix rounded-lg transition-all" placeholder="PHX-CORE-01" />
+                                                        <label className="block text-[8px] font-mono text-white/20 uppercase mb-1.5 ml-1">Operation Title</label>
+                                                        <input type="text" required value={newEventTitle} onChange={e => setNewEventTitle(e.target.value)} className="w-full bg-black/60 border border-white/10 p-3.5 text-white font-mono text-[11px] outline-none focus:border-phoenix/50 rounded-xl transition-all" placeholder="PHX-CORE-01" />
                                                     </div>
-                                                    <div>
-                                                        <label className="block text-[9px] font-mono text-white/30 uppercase mb-2">Class Description</label>
-                                                        <textarea required value={newEventDesc} onChange={e => setNewEventDesc(e.target.value)} className="w-full bg-black border border-white/10 p-4 text-white font-mono text-xs outline-none focus:border-phoenix rounded-lg h-24 resize-none transition-all" placeholder="Standard protocol briefing..." />
-                                                    </div>
-                                                    <div>
-                                                        <div className="flex justify-between items-center mb-2">
-                                                            <label className="block text-[9px] font-mono text-white/30 uppercase">Deployment Time (WIB)</label>
-                                                            <div className="flex bg-black border border-white/5 p-0.5 rounded overflow-hidden">
-                                                                <button type="button" onClick={setNowTime} className="text-[7px] font-mono text-white/40 hover:text-white hover:bg-white/5 px-1.5 py-0.5 rounded transition-all">NOW</button>
-                                                                <button type="button" onClick={() => setQuickDate('tomorrow')} className="text-[7px] font-mono text-white/40 hover:text-white hover:bg-white/5 px-1.5 py-0.5 rounded transition-all border-l border-white/5">TMRW</button>
-                                                                <button type="button" onClick={() => setQuickDate('saturday')} className="text-[7px] font-mono text-white/40 hover:text-white hover:bg-white/5 px-1.5 py-0.5 rounded transition-all border-l border-white/5">SAT</button>
-                                                            </div>
-                                                        </div>
 
-                                                        <div className="relative group/picker">
-                                                            <div className="flex bg-black border border-white/10 group-focus-within/picker:border-phoenix rounded-t-lg transition-all overflow-hidden">
-                                                                <input
-                                                                    type="datetime-local"
-                                                                    required
-                                                                    value={newEventDate}
-                                                                    onChange={e => setNewEventDate(e.target.value)}
-                                                                    className="flex-1 bg-transparent p-4 pb-1 text-white font-mono text-xs outline-none"
-                                                                />
-                                                                <button
-                                                                    type="button"
-                                                                    onClick={() => setShowTimePicker(!showTimePicker)}
-                                                                    className={`px-4 flex items-center gap-2 font-mono text-[8px] uppercase transition-all ${showTimePicker ? 'bg-phoenix text-white' : 'text-white/30 hover:text-white hover:bg-white/5'}`}
-                                                                >
-                                                                    <Clock size={12} /> {showTimePicker ? 'Close' : 'Grid'}
-                                                                </button>
+                                                    <div className="grid grid-cols-2 gap-3">
+                                                        <div>
+                                                            <div className="flex justify-between items-center mb-1.5 px-1">
+                                                                <label className="block text-[8px] font-mono text-white/20 uppercase">Deployment Time</label>
+                                                                <div className="flex bg-black/40 border border-white/5 p-0.5 rounded-md overflow-hidden">
+                                                                    <button type="button" onClick={setNowTime} className="text-[7px] font-mono text-white/30 hover:text-white hover:bg-white/5 px-1.5 py-0.5 transition-all">NOW</button>
+                                                                    <button type="button" onClick={() => setQuickDate('tomorrow')} className="text-[7px] font-mono text-white/30 hover:text-white hover:bg-white/5 px-1.5 py-0.5 border-l border-white/5 transition-all">TMRW</button>
+                                                                </div>
                                                             </div>
 
-                                                            <AnimatePresence>
-                                                                {showTimePicker && (
-                                                                    <motion.div
-                                                                        initial={{ opacity: 0, scale: 0.95 }}
-                                                                        animate={{ opacity: 1, scale: 1 }}
-                                                                        exit={{ opacity: 0, scale: 0.95 }}
-                                                                        className="absolute right-0 top-full mt-2 w-72 bg-[#111] border border-white/10 rounded-xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] z-50 p-5 backdrop-blur-xl"
+                                                            <div className="relative group/picker">
+                                                                <div className="flex bg-black/60 border border-white/10 group-focus-within/picker:border-phoenix/50 rounded-t-xl transition-all overflow-hidden">
+                                                                    <input
+                                                                        type="datetime-local"
+                                                                        required
+                                                                        value={newEventDate}
+                                                                        onChange={e => setNewEventDate(e.target.value)}
+                                                                        className="flex-1 bg-transparent p-3 text-white font-mono text-[10px] outline-none"
+                                                                    />
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={() => setShowTimePicker(!showTimePicker)}
+                                                                        className={`px-3 flex items-center gap-2 font-mono text-[7px] uppercase transition-all ${showTimePicker ? 'bg-phoenix text-white' : 'text-white/20 hover:text-white hover:bg-white/5 border-l border-white/10'}`}
                                                                     >
-                                                                        <div className="mb-4 pb-4 border-b border-white/5">
-                                                                            <div className="text-[8px] font-mono text-white/20 uppercase mb-3 tracking-[0.2em]">Select Hour (WIB)</div>
-                                                                            <div className="grid grid-cols-6 gap-1">
-                                                                                {Array.from({ length: 24 }).map((_, i) => {
-                                                                                    const h = String(i).padStart(2, '0');
-                                                                                    const currentH = newEventDate.split('T')[1]?.split(':')[0];
-                                                                                    return (
-                                                                                        <button
-                                                                                            key={h}
-                                                                                            type="button"
-                                                                                            onClick={() => setQuickTime(`${h}:${newEventDate.split('T')[1]?.split(':')[1] || '00'}`)}
-                                                                                            className={`p-1.5 text-[10px] font-mono rounded transition-all ${currentH === h ? 'bg-phoenix text-white' : 'hover:bg-white/5 text-white/40'}`}
-                                                                                        >
-                                                                                            {h}
-                                                                                        </button>
-                                                                                    );
-                                                                                })}
-                                                                            </div>
-                                                                        </div>
-                                                                        <div>
-                                                                            <div className="text-[8px] font-mono text-white/20 uppercase mb-3 tracking-[0.2em]">Select Minute</div>
-                                                                            <div className="grid grid-cols-6 gap-1">
-                                                                                {[0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55].map((m) => {
-                                                                                    const min = String(m).padStart(2, '0');
-                                                                                    const currentM = newEventDate.split('T')[1]?.split(':')[1];
-                                                                                    return (
-                                                                                        <button
-                                                                                            key={min}
-                                                                                            type="button"
-                                                                                            onClick={() => setQuickTime(`${newEventDate.split('T')[1]?.split(':')[0] || '19'}:${min}`)}
-                                                                                            className={`p-1.5 text-[10px] font-mono rounded transition-all ${currentM === min ? 'bg-phoenix text-white' : 'hover:bg-white/5 text-white/40'}`}
-                                                                                        >
-                                                                                            {min}
-                                                                                        </button>
-                                                                                    );
-                                                                                })}
-                                                                            </div>
-                                                                        </div>
-                                                                    </motion.div>
-                                                                )}
-                                                            </AnimatePresence>
-
-                                                            <div className="bg-black/50 border-x border-b border-white/10 rounded-b-lg p-2.5 flex justify-between items-center">
-                                                                <div className="flex gap-1.5">
-                                                                    <button type="button" onClick={() => adjustTime(-60)} className="text-[8px] font-mono text-white/25 hover:text-white px-2 py-0.5 border border-white/5 rounded transition-all">-1H</button>
-                                                                    <button type="button" onClick={() => adjustTime(60)} className="text-[8px] font-mono text-white/25 hover:text-white px-2 py-0.5 border border-white/5 rounded transition-all">+1H</button>
-                                                                    <button type="button" onClick={() => adjustTime(15)} className="text-[8px] font-mono text-white/25 hover:text-white px-2 py-0.5 border border-white/5 rounded transition-all">+15M</button>
+                                                                        <Clock size={10} />
+                                                                    </button>
                                                                 </div>
-                                                                <div className="text-[9px] font-mono text-phoenix tracking-widest uppercase font-bold">
-                                                                    {newEventDate ? new Date(newEventDate).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' }) : '---'}
+
+                                                                <AnimatePresence>
+                                                                    {showTimePicker && (
+                                                                        <motion.div
+                                                                            initial={{ opacity: 0, scale: 0.98, y: -5 }}
+                                                                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                                                                            exit={{ opacity: 0, scale: 0.98, y: -5 }}
+                                                                            className="absolute right-0 top-full mt-2 w-72 bg-[#0a0a0a] border border-white/10 rounded-2xl shadow-[0_25px_50px_rgba(0,0,0,0.8)] z-50 p-5 backdrop-blur-3xl"
+                                                                        >
+                                                                            <div className="mb-4 pb-4 border-b border-white/5">
+                                                                                <div className="text-[7px] font-mono text-white/20 uppercase mb-3 tracking-[0.3em]">Select Hour (WIB)</div>
+                                                                                <div className="grid grid-cols-6 gap-1">
+                                                                                    {Array.from({ length: 24 }).map((_, i) => {
+                                                                                        const h = String(i).padStart(2, '0');
+                                                                                        const currentH = newEventDate.split('T')[1]?.split(':')[0];
+                                                                                        return (
+                                                                                            <button
+                                                                                                key={h}
+                                                                                                type="button"
+                                                                                                onClick={() => setQuickTime(`${h}:${newEventDate.split('T')[1]?.split(':')[1] || '00'}`)}
+                                                                                                className={`p-1.5 text-[9px] font-mono rounded transition-all ${currentH === h ? 'bg-phoenix text-white' : 'hover:bg-white/5 text-white/30'}`}
+                                                                                            >
+                                                                                                {h}
+                                                                                            </button>
+                                                                                        );
+                                                                                    })}
+                                                                                </div>
+                                                                            </div>
+                                                                            <div>
+                                                                                <div className="text-[7px] font-mono text-white/20 uppercase mb-3 tracking-[0.3em]">Select Minute</div>
+                                                                                <div className="grid grid-cols-6 gap-1">
+                                                                                    {[0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55].map((m) => {
+                                                                                        const min = String(m).padStart(2, '0');
+                                                                                        const currentM = newEventDate.split('T')[1]?.split(':')[1];
+                                                                                        return (
+                                                                                            <button
+                                                                                                key={min}
+                                                                                                type="button"
+                                                                                                onClick={() => setQuickTime(`${newEventDate.split('T')[1]?.split(':')[0] || '19'}:${min}`)}
+                                                                                                className={`p-1.5 text-[9px] font-mono rounded transition-all ${currentM === min ? 'bg-phoenix text-white' : 'hover:bg-white/5 text-white/30'}`}
+                                                                                            >
+                                                                                                {min}
+                                                                                            </button>
+                                                                                        );
+                                                                                    })}
+                                                                                </div>
+                                                                            </div>
+                                                                        </motion.div>
+                                                                    )}
+                                                                </AnimatePresence>
+
+                                                                <div className="bg-white/[0.02] border-x border-b border-white/10 rounded-b-xl px-2.5 py-2 flex justify-between items-center">
+                                                                    <div className="flex gap-1.5">
+                                                                        <button type="button" onClick={() => adjustTime(60)} className="text-[7px] font-mono text-white/20 hover:text-white px-1.5 py-0.5 bg-white/5 rounded transition-all">+1H</button>
+                                                                        <button type="button" onClick={() => adjustTime(15)} className="text-[7px] font-mono text-white/20 hover:text-white px-1.5 py-0.5 bg-white/5 rounded transition-all">+15M</button>
+                                                                    </div>
+                                                                    <div className="text-[8px] font-mono text-phoenix/80 tracking-widest uppercase font-bold">
+                                                                        {newEventDate ? new Date(newEventDate).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' }) : '---'}
+                                                                    </div>
                                                                 </div>
                                                             </div>
                                                         </div>
-                                                    </div>
 
-                                                    <div className="grid grid-cols-2 gap-4">
                                                         <div>
-                                                            <label className="block text-[9px] font-mono text-white/30 uppercase mb-2">Max Nodes</label>
-                                                            <input type="number" required value={newEventCapacity} onChange={e => setNewEventCapacity(parseInt(e.target.value))} className="w-full bg-black border border-white/10 p-4 text-white font-mono text-xs outline-none focus:border-phoenix rounded-lg" placeholder="50" />
-                                                        </div>
-                                                        <div>
-                                                            <label className="block text-[9px] font-mono text-white/30 uppercase mb-2">Location ID</label>
-                                                            <input type="text" required value={newEventLocation} onChange={e => setNewEventLocation(e.target.value)} className="w-full bg-black border border-white/10 p-4 text-white font-mono text-xs outline-none focus:border-phoenix rounded-lg" placeholder="Discord-X" />
+                                                            <label className="block text-[8px] font-mono text-white/20 uppercase mb-1.5 ml-1">Max Nodes</label>
+                                                            <input type="number" required value={newEventCapacity} onChange={e => setNewEventCapacity(parseInt(e.target.value))} className="w-full bg-black/60 border border-white/10 p-3.5 text-white font-mono text-[11px] outline-none focus:border-phoenix/50 rounded-xl" placeholder="50" />
                                                         </div>
                                                     </div>
 
-                                                    <div>
-                                                        <label className="block text-[9px] font-mono text-white/30 uppercase mb-2">Access Payload (Discord Link)</label>
-                                                        <input type="url" required value={newEventDiscord} onChange={e => setNewEventDiscord(e.target.value)} className="w-full bg-black border border-white/10 p-4 text-white font-mono text-xs outline-none focus:border-phoenix rounded-lg" placeholder="https://..." />
+                                                    <div className="grid grid-cols-2 gap-3">
+                                                        <div>
+                                                            <label className="block text-[8px] font-mono text-white/20 uppercase mb-1.5 ml-1">Location ID</label>
+                                                            <input type="text" required value={newEventLocation} onChange={e => setNewEventLocation(e.target.value)} className="w-full bg-black/60 border border-white/10 p-3.5 text-white font-mono text-[11px] outline-none focus:border-phoenix/50 rounded-xl" placeholder="Discord-X" />
+                                                        </div>
+                                                        <div>
+                                                            <label className="block text-[8px] font-mono text-white/20 uppercase mb-1.5 ml-1">Access Payload</label>
+                                                            <input type="url" required value={newEventDiscord} onChange={e => setNewEventDiscord(e.target.value)} className="w-full bg-black/60 border border-white/10 p-3.5 text-white font-mono text-[11px] outline-none focus:border-phoenix/50 rounded-xl" placeholder="https://..." />
+                                                        </div>
                                                     </div>
 
                                                     <button
                                                         disabled={loadingAction === 'add_event'}
                                                         type="submit"
-                                                        className="w-full py-4 bg-phoenix hover:bg-phoenix-light text-white font-mono text-[10px] font-bold uppercase tracking-[0.4em] transition-all rounded-lg mt-6 shadow-lg shadow-phoenix/10 hover:shadow-phoenix/20 active:scale-[0.98]"
+                                                        className="w-full py-4 bg-white text-black hover:bg-phoenix hover:text-white font-mono text-[9px] font-bold uppercase tracking-[0.4em] transition-all rounded-xl mt-4 shadow-xl shadow-black/20 active:scale-[0.98]"
                                                     >
-                                                        {loadingAction === 'add_event' ? <Loader2 size={18} className="animate-spin mx-auto" /> : "Initiate Briefing"}
+                                                        {loadingAction === 'add_event' ? <Loader2 size={16} className="animate-spin mx-auto" /> : "Deploy Protocol"}
                                                     </button>
                                                 </form>
                                             </div>
 
-                                            {/* Live Classes Sidebar */}
-                                            <div className="space-y-6">
-                                                <div className="flex items-center justify-between mb-2">
-                                                    <h3 className="text-sm font-mono font-bold uppercase tracking-[0.3em] text-white/40 flex items-center gap-2">
-                                                        <Database className="text-phoenix" size={14} /> Active Classrooms
+                                            {/* Live Classrooms: Terminal Style */}
+                                            <div className="flex flex-col">
+                                                <div className="flex items-center justify-between mb-4 px-1">
+                                                    <h3 className="text-[10px] font-mono font-bold uppercase tracking-[0.4em] text-white/30 flex items-center gap-2">
+                                                        <Database className="text-phoenix/60" size={12} /> Live Clusters
                                                     </h3>
-                                                    <span className="text-[9px] font-mono text-white/20 uppercase tracking-widest">{events.length} ACTIVE</span>
+                                                    <div className="flex items-center gap-2">
+                                                        <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+                                                        <span className="text-[8px] font-mono text-white/20 uppercase tracking-widest">{events.length} Active</span>
+                                                    </div>
                                                 </div>
 
-                                                <div className="space-y-4 max-h-[600px] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-white/5">
+                                                <div className="space-y-2 max-h-[600px] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-white/5">
                                                     {events.length === 0 ? (
-                                                        <div className="py-20 text-center border border-dashed border-white/5 rounded-2xl bg-black/20">
-                                                            <Database size={40} className="text-white/5 mx-auto mb-4" />
-                                                            <p className="font-mono text-[10px] text-white/20 uppercase tracking-widest leading-relaxed">No live classrooms<br />currently deployed.</p>
+                                                        <div className="py-20 text-center border border-white/5 rounded-2xl bg-black/40">
+                                                            <Database size={32} className="text-white/5 mx-auto mb-3" />
+                                                            <p className="font-mono text-[9px] text-white/10 uppercase tracking-widest leading-relaxed">No clusters currently<br />broadcasting.</p>
                                                         </div>
                                                     ) : (
                                                         events.map(ev => (
-                                                            <div key={ev.id} className="p-6 border border-white/5 bg-[#0d0d0d] hover:bg-black/40 hover:border-phoenix/20 transition-all rounded-2xl group/item relative overflow-hidden">
-                                                                <div className="absolute top-0 right-0 w-1 h-full bg-phoenix opacity-0 group-hover/item:opacity-100 transition-all" />
-                                                                <div className="flex justify-between items-start mb-4">
-                                                                    <div className="flex items-center gap-3">
-                                                                        <div className="w-2 h-2 rounded-full bg-phoenix animate-pulse shadow-[0_0_10px_rgba(255,107,0,0.5)]" />
-                                                                        <div className="font-display font-medium text-white group-hover/item:text-phoenix transition-colors">{ev.title}</div>
+                                                            <div key={ev.id} className="p-4 border border-white/5 bg-black/40 hover:border-phoenix/30 hover:bg-black/60 transition-all rounded-xl group/item relative overflow-hidden">
+                                                                <div className="flex justify-between items-center mb-3">
+                                                                    <div className="flex items-center gap-2.5">
+                                                                        <div className="w-1 h-3 bg-phoenix/60 rounded-full" />
+                                                                        <div className="font-mono text-[11px] font-bold text-white/90 group-hover/item:text-phoenix transition-colors">{ev.title}</div>
                                                                     </div>
                                                                     <button
                                                                         onClick={() => handleDeleteItem('events', ev.id)}
-                                                                        className="opacity-0 group-hover/item:opacity-100 text-red-500/30 hover:text-red-500 transition-all p-2"
+                                                                        className="opacity-0 group-hover/item:opacity-100 text-white/20 hover:text-red-500 transition-all p-1"
                                                                     >
-                                                                        <Trash2 size={14} />
+                                                                        <Trash2 size={12} />
                                                                     </button>
                                                                 </div>
-                                                                <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-[9px] font-mono text-white/20 uppercase tracking-widest pl-5">
-                                                                    <div className="flex items-center gap-2">
-                                                                        <Calendar size={12} className="text-phoenix/40" />
-                                                                        {new Date(ev.event_date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+
+                                                                <div className="grid grid-cols-3 gap-1 pl-3.5">
+                                                                    <div className="flex items-center gap-1.5 text-[8px] font-mono text-white/30">
+                                                                        <Calendar size={10} className="text-white/10" />
+                                                                        {new Date(ev.event_date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}
                                                                     </div>
-                                                                    <div className="flex items-center gap-2">
-                                                                        <Users size={12} className="text-phoenix/40" />
-                                                                        Nodes: {ev.capacity}
+                                                                    <div className="flex items-center gap-1.5 text-[8px] font-mono text-white/30">
+                                                                        <Users size={10} className="text-white/10" />
+                                                                        N:{ev.capacity}
                                                                     </div>
-                                                                    <div className="flex items-center gap-2">
-                                                                        <ShieldAlert size={12} className="text-phoenix/40" />
-                                                                        {ev.location}
+                                                                    <div className="flex items-center gap-1.5 text-[8px] font-mono text-white/30 justify-end">
+                                                                        <ShieldAlert size={10} className="text-white/10" />
+                                                                        <span className="truncate max-w-[50px]">{ev.location}</span>
                                                                     </div>
                                                                 </div>
                                                             </div>
