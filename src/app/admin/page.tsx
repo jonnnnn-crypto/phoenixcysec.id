@@ -16,14 +16,28 @@ type PendingReport = {
     users?: { username: string };
 };
 
+type Partner = {
+    id: string;
+    name: string;
+    website: string;
+    category: string;
+};
+
+type Documentation = {
+    id: string;
+    title: string;
+    slug: string;
+    category: string;
+};
+
 export default function AdminDashboard() {
     const [activeTab, setActiveTab] = useState("reports");
     const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
 
     // Real data states
     const [pendingReports, setPendingReports] = useState<PendingReport[]>([]);
-    const [partners, setPartners] = useState<Record<string, unknown>[]>([]);
-    const [docs, setDocs] = useState<Record<string, unknown>[]>([]);
+    const [partners, setPartners] = useState<Partner[]>([]);
+    const [docs, setDocs] = useState<Documentation[]>([]);
 
     const [totalMembers, setTotalMembers] = useState(0);
     const [loadingAction, setLoadingAction] = useState<string | null>(null);
@@ -49,10 +63,10 @@ export default function AdminDashboard() {
             if (reportsData) setPendingReports(reportsData as unknown as PendingReport[]);
 
             const { data: partnersData } = await supabase.from('partners').select('*').order('name');
-            if (partnersData) setPartners(partnersData);
+            if (partnersData) setPartners(partnersData as Partner[]);
 
             const { data: docsData } = await supabase.from('documentation').select('*').order('created_at', { ascending: false });
-            if (docsData) setDocs(docsData);
+            if (docsData) setDocs(docsData as Documentation[]);
 
             const { count: memberCount } = await supabase.from('users').select('*', { count: 'exact', head: true });
             if (memberCount !== null) setTotalMembers(memberCount);
@@ -108,7 +122,7 @@ export default function AdminDashboard() {
 
         if (error) alert(error.message);
         else if (data) {
-            setPartners(prev => [...prev, data[0]]);
+            setPartners(prev => [...prev, data[0] as Partner]);
             setNewPartnerName(""); setNewPartnerUrl("");
         }
         setLoadingAction(null);
@@ -139,7 +153,7 @@ export default function AdminDashboard() {
 
         if (error) alert(error.message);
         else if (data) {
-            setDocs(prev => [data[0], ...prev]);
+            setDocs(prev => [data[0] as Documentation, ...prev]);
             setNewDocTitle(""); setNewDocSlug("");
         }
         setLoadingAction(null);

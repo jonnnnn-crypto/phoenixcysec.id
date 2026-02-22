@@ -1,50 +1,71 @@
 "use client";
 
-import { useState } from "react";
-import { createClient } from "@/lib/supabase";
-import { useRouter } from "next/navigation";
-import { Terminal } from "lucide-react";
+import { useState } from 'react';
+import { createClient } from '@/lib/supabase';
+import { Lock, Mail, Loader2 } from 'lucide-react';
 
 export default function JoinPage() {
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [username, setUsername] = useState('');
     const [isLogin, setIsLogin] = useState(true);
-    const [email, setEmail] = useState("");
-    const [password, setPassword] = useState("");
-    const [username, setUsername] = useState("");
     const [loading, setLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
-    const router = useRouter();
+    const [message, setMessage] = useState('');
+    const [error, setError] = useState('');
+
     const supabase = createClient();
 
     const handleAuth = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
-        setError(null);
+        setMessage('');
+        setError('');
 
         if (isLogin) {
-            const { error } = await supabase.auth.signInWithPassword({ email, password });
-            if (error) setError(error.message);
-            else router.push("/dashboard");
+            const { error: signInError } = await supabase.auth.signInWithPassword({
+                email,
+                password,
+            });
+
+            if (signInError) {
+                setError(signInError.message);
+            } else {
+                setMessage('Login successful! Redirecting...');
+                window.location.href = '/dashboard';
+            }
         } else {
-            const { data, error } = await supabase.auth.signUp({
+            // Need a username for signup in our system
+            if (!username) {
+                setError('Username is required for new accounts.');
+                setLoading(false);
+                return;
+            }
+
+            const { data, error: signUpError } = await supabase.auth.signUp({
                 email,
                 password,
                 options: {
-                    data: { username }
+                    data: {
+                        username: username, // Save username in auth metadata
+                    }
                 }
             });
-            if (error) setError(error.message);
-            else {
-                // Here we could auto create a user record or rely on a Supabase trigger.
-                // The user's schema provided doesn't show an auth trigger, so we might need to insert manually or assume they make one.
+
+            if (signUpError) {
+                setError(signUpError.message);
+            } else {
+                setMessage('Registration successful! Please check your email to verify your account.');
+                // Assuming we have a trigger to create the user profile or we will create it manually here
                 if (data.user) {
-                    const { error: dbError } = await supabase.from('users').insert([
-                        { id: data.user.id, email, username }
-                    ]);
-                    if (dbError) setError(dbError.message);
-                    else {
-                        await supabase.from('profiles').insert([{ user_id: data.user.id }]);
-                        router.push("/dashboard");
-                    }
+                    await supabase.from('users').insert({
+                        id: data.user.id,
+                        email: data.user.email,
+                        username: username,
+                        role: 'member'
+                    });
+                    await supabase.from('profiles').insert({
+                        user_id: data.user.id
+                    });
                 }
             }
         }
@@ -52,87 +73,97 @@ export default function JoinPage() {
     };
 
     return (
-        <div className="min-h-screen pt-24 px-6 flex items-center justify-center relative overflow-hidden bg-charcoal-dark">
-            {/* Background elements */}
-            <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-phoenix/10 blur-[150px] rounded-full pointer-events-none" />
-            <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-white/5 blur-[150px] rounded-full pointer-events-none" />
+        <div className="min-h-screen pt-32 pb-24 px-6 md:px-12 bg-charcoal-dark border-t-2 border-phoenix flex items-center justify-center relative overflow-hidden">
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-phoenix/5 blur-[120px] rounded-full pointer-events-none" />
 
-            <div className="w-full max-w-md relative z-10">
-                <div className="p-8 border border-white/10 bg-[#111] shadow-2xl relative">
-                    <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-phoenix-dark via-phoenix to-phoenix-light" />
+            <div className="w-full max-w-md bg-[#0a0a0a] border border-white/10 p-8 shadow-2xl relative z-10">
+                <div className="mb-10 text-center">
+                    <h1 className="font-display font-bold text-3xl text-white mb-2 uppercase tracking-wide">
+                        {isLogin ? 'Establish Connection' : 'Register Identity'}
+                    </h1>
+                    <p className="font-mono text-xs text-white/40 uppercase tracking-widest">
+                        Phoenix Command Center
+                    </p>
+                </div>
 
-                    <div className="flex items-center gap-3 mb-8 justify-center">
-                        <Terminal className="text-phoenix" size={28} />
-                        <h1 className="font-display font-bold text-2xl text-white">System Access</h1>
-                    </div>
-
-                    {error && (
-                        <div className="mb-6 p-3 bg-red-500/10 border border-red-500/50 text-red-500 text-sm font-mono text-center">
-                            {error}
-                        </div>
-                    )}
-
-                    <form onSubmit={handleAuth} className="space-y-4">
-                        {!isLogin && (
-                            <div>
-                                <label className="block text-white/50 text-xs font-mono uppercase mb-2">Username</label>
+                <form onSubmit={handleAuth} className="space-y-5">
+                    {!isLogin && (
+                        <div>
+                            <label className="block font-mono text-xs text-white/50 mb-2 uppercase">Handle (Username)</label>
+                            <div className="relative">
+                                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-white/30 font-mono">@</span>
                                 <input
                                     type="text"
                                     value={username}
-                                    onChange={(e) => setUsername(e.target.value)}
-                                    className="w-full bg-charcoal border border-white/10 px-4 py-3 text-white focus:outline-none focus:border-phoenix transition-colors font-mono text-sm"
+                                    onChange={e => setUsername(e.target.value)}
+                                    className="w-full bg-[#151515] border border-white/10 focus:border-phoenix text-white px-4 py-3 pl-10 outline-none transition-colors font-mono text-sm"
+                                    placeholder="byte_ninja"
                                     required={!isLogin}
-                                    placeholder="hunter_1337"
                                 />
                             </div>
-                        )}
-                        <div>
-                            <label className="block text-white/50 text-xs font-mono uppercase mb-2">Email</label>
+                        </div>
+                    )}
+
+                    <div>
+                        <label className="block font-mono text-xs text-white/50 mb-2 uppercase">Email Address</label>
+                        <div className="relative">
+                            <Mail size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-white/30" />
                             <input
                                 type="email"
                                 value={email}
-                                onChange={(e) => setEmail(e.target.value)}
-                                className="w-full bg-charcoal border border-white/10 px-4 py-3 text-white focus:outline-none focus:border-phoenix transition-colors font-mono text-sm"
+                                onChange={e => setEmail(e.target.value)}
+                                className="w-full bg-[#151515] border border-white/10 focus:border-phoenix text-white px-4 py-3 pl-10 outline-none transition-colors font-mono text-sm"
+                                placeholder="operator@webphoenix.org"
                                 required
-                                placeholder="system@phoenixcysec.org"
                             />
                         </div>
-                        <div>
-                            <label className="block text-white/50 text-xs font-mono uppercase mb-2">Password</label>
+                    </div>
+
+                    <div>
+                        <label className="block font-mono text-xs text-white/50 mb-2 uppercase">Access Key (Password)</label>
+                        <div className="relative">
+                            <Lock size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-white/30" />
                             <input
                                 type="password"
                                 value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                                className="w-full bg-charcoal border border-white/10 px-4 py-3 text-white focus:outline-none focus:border-phoenix transition-colors font-mono text-sm"
-                                required
+                                onChange={e => setPassword(e.target.value)}
+                                className="w-full bg-[#151515] border border-white/10 focus:border-phoenix text-white px-4 py-3 pl-10 outline-none transition-colors font-mono text-sm"
                                 placeholder="••••••••••••"
+                                required
                             />
                         </div>
-
-                        <button
-                            type="submit"
-                            disabled={loading}
-                            className="w-full py-4 bg-phoenix text-white font-mono uppercase tracking-widest text-sm font-bold hover:bg-phoenix-light transition-all shadow-[0_0_15px_rgba(230,57,70,0.3)] hover:shadow-[0_0_25px_rgba(230,57,70,0.6)] disabled:opacity-50 mt-4 group"
-                        >
-                            <span className="inline-block transform group-hover:scale-105 transition-transform">
-                                {loading ? "Authenticating..." : (isLogin ? "Initialize Session" : "Create Identity")}
-                            </span>
-                        </button>
-                    </form>
-
-                    <div className="mt-8 pt-6 border-t border-white/10 text-center">
-                        <button
-                            onClick={() => { setIsLogin(!isLogin); setError(null); }}
-                            className="text-white/40 hover:text-white transition-colors font-mono text-xs uppercase tracking-wider"
-                        >
-                            {isLogin ? "Request Access (Register)" : "Acknowledge Identity (Login)"}
-                        </button>
                     </div>
-                </div>
 
-                {/* Terminal decorative text */}
-                <div className="mt-6 text-center font-mono text-[10px] text-white/20 uppercase tracking-[0.2em] select-none">
-                    Secured by Phoenix Protocol v2.5.4
+                    {error && (
+                        <div className="p-3 bg-red-500/10 border border-red-500/30 text-red-500 text-xs font-mono uppercase">
+                            Warning: {error}
+                        </div>
+                    )}
+
+                    {message && (
+                        <div className="p-3 bg-green-500/10 border border-green-500/30 text-green-500 text-xs font-mono uppercase">
+                            System: {message}
+                        </div>
+                    )}
+
+                    <button
+                        type="submit"
+                        disabled={loading}
+                        className="w-full bg-phoenix hover:bg-phoenix-light text-white font-mono uppercase text-sm font-bold py-4 transition-all shadow-[0_0_20px_rgba(59,130,246,0.2)] disabled:opacity-50 flex justify-center items-center gap-2"
+                    >
+                        {loading && <Loader2 size={16} className="animate-spin" />}
+                        {isLogin ? 'Initiate Link' : 'Create Profile'}
+                    </button>
+                </form>
+
+                <div className="mt-8 pt-6 border-t border-white/10 text-center">
+                    <button
+                        type="button"
+                        onClick={() => { setIsLogin(!isLogin); setError(''); setMessage(''); }}
+                        className="font-mono text-xs text-white/40 hover:text-phoenix transition-colors uppercase tracking-widest"
+                    >
+                        {isLogin ? 'Need an identity? Register here.' : 'Already registered? Authenticate here.'}
+                    </button>
                 </div>
             </div>
         </div>
