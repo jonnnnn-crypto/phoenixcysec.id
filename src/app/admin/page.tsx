@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase";
 import {
     Users, FileWarning, Handshake, ShieldAlert, CheckCircle,
-    XCircle, Loader2, Trash2, Plus, Calendar, Settings,
+    XCircle, Loader2, Trash2, Calendar, Settings,
     ChevronRight, LayoutDashboard, Database,
     ExternalLink, AlertTriangle, Search, Clock
 } from "lucide-react";
@@ -515,8 +515,8 @@ export default function AdminDashboard() {
                                 {/* Create Event Form */}
                                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 pt-8 border-t border-white/5">
                                     <div className="p-8 bg-[#0d0d0d] border border-white/5 rounded-xl">
-                                        <h3 className="text-lg font-display font-medium uppercase tracking-tight mb-6 flex items-center gap-2">
-                                            <Plus size={18} className="text-phoenix" /> Schedule New Class
+                                        <h3 className="text-lg font-display font-medium uppercase tracking-tight mb-8 flex items-center gap-2">
+                                            <Calendar className="text-phoenix" size={18} /> Schedule New Class
                                         </h3>
                                         <form onSubmit={handleAddEvent} className="space-y-4">
                                             <div>
@@ -530,29 +530,29 @@ export default function AdminDashboard() {
                                             <div className="grid grid-cols-2 gap-4">
                                                 <div>
                                                     <div className="flex justify-between items-center mb-2">
-                                                        <label className="block text-[10px] font-mono text-white/30 uppercase">Event Time (WIB/UTC+7)</label>
-                                                        <div className="flex gap-1">
-                                                            <button type="button" onClick={setNowTime} className="text-[9px] font-mono text-phoenix hover:text-white border border-phoenix/20 px-1 rounded transition-colors">NOW</button>
-                                                            <button type="button" onClick={() => setQuickDate('tomorrow')} className="text-[9px] font-mono text-phoenix hover:text-white border border-phoenix/20 px-1 rounded transition-colors">TMRW</button>
-                                                            <button type="button" onClick={() => setQuickDate('saturday')} className="text-[9px] font-mono text-phoenix hover:text-white border border-phoenix/20 px-1 rounded transition-colors">SAT</button>
+                                                        <label className="block text-[10px] font-mono text-white/30 uppercase">Event Time (WIB)</label>
+                                                        <div className="flex bg-black border border-white/5 p-0.5 rounded overflow-hidden">
+                                                            <button type="button" onClick={setNowTime} className="text-[8px] font-mono text-white/40 hover:text-white hover:bg-white/5 px-1.5 py-0.5 rounded transition-all">NOW</button>
+                                                            <button type="button" onClick={() => setQuickDate('tomorrow')} className="text-[8px] font-mono text-white/40 hover:text-white hover:bg-white/5 px-1.5 py-0.5 rounded transition-all border-l border-white/5">TMRW</button>
+                                                            <button type="button" onClick={() => setQuickDate('saturday')} className="text-[8px] font-mono text-white/40 hover:text-white hover:bg-white/5 px-1.5 py-0.5 rounded transition-all border-l border-white/5">SAT</button>
                                                         </div>
                                                     </div>
 
                                                     <div className="relative group">
-                                                        <div className="flex gap-2 mb-2">
+                                                        <div className="flex bg-black border border-white/10 group-focus-within:border-phoenix rounded-t transition-all">
                                                             <input
                                                                 type="datetime-local"
                                                                 required
                                                                 value={newEventDate}
                                                                 onChange={e => setNewEventDate(e.target.value)}
-                                                                className="flex-1 bg-black border border-white/10 p-4 pb-1 group-focus-within:border-phoenix text-white font-mono text-sm outline-none transition-all rounded-t"
+                                                                className="flex-1 bg-transparent p-4 pb-1 text-white font-mono text-sm outline-none"
                                                             />
                                                             <button
                                                                 type="button"
                                                                 onClick={() => setShowTimePicker(!showTimePicker)}
-                                                                className={`px-4 rounded-t border transition-all flex items-center gap-2 font-mono text-[10px] uppercase ${showTimePicker ? 'bg-phoenix border-phoenix text-white' : 'bg-white/5 border-white/10 text-white/40 hover:text-white'}`}
+                                                                className={`px-4 flex items-center gap-2 font-mono text-[9px] uppercase transition-all ${showTimePicker ? 'bg-phoenix text-white' : 'text-white/30 hover:text-white hover:bg-white/5'}`}
                                                             >
-                                                                <Clock size={14} /> {showTimePicker ? 'Close' : 'Pick Time'}
+                                                                <Clock size={12} /> {showTimePicker ? 'Close' : 'Grid'}
                                                             </button>
                                                         </div>
 
@@ -651,17 +651,33 @@ export default function AdminDashboard() {
 
                                     {/* Existing Events List */}
                                     <div className="p-8 bg-[#0d0d0d] border border-white/5 rounded-xl">
-                                        <h3 className="text-lg font-display font-medium uppercase tracking-tight mb-6">Live Classes</h3>
-                                        <div className="space-y-4">
+                                        <h3 className="text-lg font-display font-medium uppercase tracking-tight mb-8 flex items-center gap-2">
+                                            <Database className="text-phoenix" size={18} /> Live Classes
+                                        </h3>
+                                        <div className="space-y-3">
                                             {events.map(ev => (
-                                                <div key={ev.id} className="p-4 border border-white/5 bg-black/40 rounded flex flex-col gap-2">
-                                                    <div className="flex justify-between items-start">
-                                                        <div className="font-bold text-white">{ev.title}</div>
-                                                        <button onClick={() => handleDeleteItem('events', ev.id)} className="text-red-500/50 hover:text-red-500 transition-colors p-1"><Trash2 size={14} /></button>
+                                                <div key={ev.id} className="p-5 border border-white/5 bg-black/20 hover:bg-black/40 hover:border-white/10 transition-all rounded-xl group/item">
+                                                    <div className="flex justify-between items-start mb-3">
+                                                        <div className="flex items-center gap-3">
+                                                            <div className="w-1.5 h-1.5 rounded-full bg-phoenix animate-pulse" />
+                                                            <div className="font-bold text-white group-hover/item:text-phoenix transition-colors">{ev.title}</div>
+                                                        </div>
+                                                        <button
+                                                            onClick={() => handleDeleteItem('events', ev.id)}
+                                                            className="opacity-0 group-hover/item:opacity-100 text-red-500/50 hover:text-red-500 transition-all p-1"
+                                                        >
+                                                            <Trash2 size={14} />
+                                                        </button>
                                                     </div>
-                                                    <div className="flex items-center gap-4 text-[10px] font-mono text-white/30 uppercase">
-                                                        <span>{new Date(ev.event_date).toLocaleDateString()}</span>
-                                                        <span>Capacity: {ev.capacity}</span>
+                                                    <div className="flex items-center gap-6 text-[9px] font-mono text-white/20 uppercase tracking-widest pl-4">
+                                                        <div className="flex items-center gap-1.5">
+                                                            <Calendar size={10} className="text-phoenix/50" />
+                                                            {new Date(ev.event_date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}
+                                                        </div>
+                                                        <div className="flex items-center gap-1.5">
+                                                            <Users size={10} className="text-phoenix/50" />
+                                                            Cap: {ev.capacity}
+                                                        </div>
                                                     </div>
                                                 </div>
                                             ))}
