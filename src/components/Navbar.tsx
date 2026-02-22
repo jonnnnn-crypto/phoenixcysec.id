@@ -10,7 +10,7 @@ import { useRouter } from "next/navigation";
 const navLinks = [
     { name: "About", href: "/#about" },
     { name: "Learning Path", href: "/#learning" },
-    { name: "Cyber Lab", href: "/#lab" },
+
     { name: "White Hat Leaderboard", href: "/leaderboard" },
     { name: "Events", href: "/events" },
     { name: "Partnerships", href: "/#partnerships" },
