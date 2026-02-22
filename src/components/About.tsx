@@ -3,7 +3,7 @@
 import { useEffect, useRef } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { Users, GraduationCap, Calendar, MapPin, ShieldCheck, Target, Zap, Globe2, Briefcase } from "lucide-react";
+import { Users, GraduationCap, Calendar, MapPin, ShieldCheck, Target, Zap, Globe2, Briefcase, Award } from "lucide-react";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -279,5 +279,4 @@ export default function About() {
     );
 }
 
-// Fixed Lucide import for Award
-import { Award as AwardIcon } from "lucide-react";
+
