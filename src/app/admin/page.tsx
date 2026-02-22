@@ -550,6 +550,23 @@ export default function AdminDashboard() {
                                                                 </div>
                                                             </div>
 
+                                                            <div className="flex gap-1.5 mb-2.5 px-0.5">
+                                                                {['19:00', '20:00', '21:00'].map(t => {
+                                                                    const [h, m] = t.split(':');
+                                                                    const isActive = newEventDate.includes(`T${h}:${m}`);
+                                                                    return (
+                                                                        <button
+                                                                            key={t}
+                                                                            type="button"
+                                                                            onClick={() => setQuickTime(t)}
+                                                                            className={`flex-1 py-2 border font-mono text-[9px] font-bold rounded-lg transition-all ${isActive ? 'bg-phoenix border-phoenix text-white shadow-[0_0_10px_rgba(59,130,246,0.3)]' : 'bg-black/40 border-white/5 text-white/30 hover:border-white/20 hover:text-white'}`}
+                                                                        >
+                                                                            {t}
+                                                                        </button>
+                                                                    );
+                                                                })}
+                                                            </div>
+
                                                             <div className="relative group/picker">
                                                                 <div className="flex bg-black/60 border border-white/10 group-focus-within/picker:border-phoenix/50 rounded-t-xl transition-all overflow-hidden">
                                                                     <input
