@@ -11,7 +11,8 @@ export default function Footer() {
                     <p className="text-white/50 text-sm font-mono">Learn. Secure. Rise.</p>
                 </div>
 
-                <div className="flex items-center gap-6 font-mono text-sm uppercase text-white/70">
+                <div className="flex flex-wrap items-center justify-center md:justify-end gap-6 font-mono text-sm uppercase text-white/70">
+                    <a href="https://webphoenix.vercel.app" target="_blank" className="text-phoenix hover:text-phoenix-light transition-colors">PHX CTF</a>
                     <a href="#" className="hover:text-phoenix transition-colors">Email</a>
                     <a href="#" className="hover:text-phoenix transition-colors">Discord</a>
                     <a href="#" className="hover:text-phoenix transition-colors">GitHub</a>

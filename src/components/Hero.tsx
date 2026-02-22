@@ -76,10 +76,19 @@ export default function Hero() {
             </div>
 
             <div className="relative z-20 flex flex-col items-center text-center px-4 max-w-4xl mx-auto mt-20">
+                <Link
+                    href="https://webphoenix.vercel.app"
+                    target="_blank"
+                    className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-phoenix/30 bg-phoenix/10 text-phoenix text-[10px] font-mono tracking-widest uppercase mb-6 hover:bg-phoenix/20 transition-all group"
+                >
+                    <span className="w-1.5 h-1.5 rounded-full bg-phoenix animate-pulse" />
+                    Live CTF Platform <span className="group-hover:translate-x-1 transition-transform inline-block">→</span>
+                </Link>
+
                 <h1
                     ref={headlineRef}
                     className="font-display text-5xl md:text-7xl lg:text-8xl font-bold uppercase tracking-tight text-white mb-6 drop-shadow-2xl"
-                    style={{ textShadow: "0 0 40px rgba(59, 130, 246, 0.4)" }}
+                    style={{ textShadow: "0 0 40px rgba(255, 21, 0, 0.2)" }}
                 >
                     Start From Zero.<br />
                     <span className="text-phoenix">Become Cyber Ready.</span>
@@ -100,10 +109,11 @@ export default function Hero() {
                         Join Community
                     </Link>
                     <Link
-                        href="/lab"
+                        href="https://webphoenix.vercel.app"
+                        target="_blank"
                         className="px-8 py-4 border border-white/20 text-white font-mono uppercase tracking-wider text-sm font-semibold hover:bg-white/5 transition-all"
                     >
-                        Enter Cyber Lab
+                        Enter PHX CTF
                     </Link>
                 </div>
             </div>

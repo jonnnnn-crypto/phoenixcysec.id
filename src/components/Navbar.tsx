@@ -10,7 +10,7 @@ import { useRouter } from "next/navigation";
 const navLinks = [
     { name: "About", href: "/#about" },
     { name: "Learning Path", href: "/#learning" },
-
+    { name: "PHX CTF", href: "https://webphoenix.vercel.app", external: true },
     { name: "White Hat Leaderboard", href: "/leaderboard" },
     { name: "Events", href: "/events" },
     { name: "Partnerships", href: "/#partnerships" },
