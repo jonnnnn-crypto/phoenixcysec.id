@@ -1,4 +1,5 @@
 import Hero from "@/components/Hero";
+import About from "@/components/About";
 import Statement from "@/components/Statement";
 
 import Achievements from "@/components/Achievements";
@@ -9,6 +10,7 @@ export default function Home() {
   return (
     <>
       <Hero />
+      <About />
       <Statement />
 
       <Achievements />
