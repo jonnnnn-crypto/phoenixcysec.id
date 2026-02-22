@@ -101,7 +101,7 @@ execute function calculate_report_points();
 
 -- BUG HUNTER LEADERBOARD VIEW
 drop view if exists bughunter_leaderboard;
-create view bughunter_leaderboard as
+create view bughunter_leaderboard with (security_invoker = on) as
 select 
 u.username,
 count(w.id) as total_reports,
@@ -140,11 +140,17 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 -- ==========================================
 
 -- Enable RLS
+ALTER TABLE users ENABLE ROW LEVEL SECURITY;
+ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE partners ENABLE ROW LEVEL SECURITY;
 ALTER TABLE documentation ENABLE ROW LEVEL SECURITY;
 ALTER TABLE whitehat_reports ENABLE ROW LEVEL SECURITY;
 
 -- Drop existing policies if running multiple times
+DROP POLICY IF EXISTS "Public read users" ON users;
+DROP POLICY IF EXISTS "Users can update own record" ON users;
+DROP POLICY IF EXISTS "Public read profiles" ON profiles;
+DROP POLICY IF EXISTS "Users can update own profile" ON profiles;
 DROP POLICY IF EXISTS "Public read partners" ON partners;
 DROP POLICY IF EXISTS "Public read docs" ON documentation;
 DROP POLICY IF EXISTS "Users read own reports" ON whitehat_reports;
@@ -154,9 +160,15 @@ DROP POLICY IF EXISTS "Admin manage reports" ON whitehat_reports;
 DROP POLICY IF EXISTS "Members insert reports" ON whitehat_reports;
 
 -- Baca Publik
+CREATE POLICY "Public read users" ON users FOR SELECT USING (true);
+CREATE POLICY "Public read profiles" ON profiles FOR SELECT USING (true);
 CREATE POLICY "Public read partners" ON partners FOR SELECT USING (true);
 CREATE POLICY "Public read docs" ON documentation FOR SELECT USING (true);
 CREATE POLICY "Users read own reports" ON whitehat_reports FOR SELECT USING (auth.uid() = user_id OR status = 'approved');
+
+-- Update Sendiri (Opsional untuk masa depan)
+CREATE POLICY "Users can update own record" ON users FOR UPDATE USING (auth.uid() = id);
+CREATE POLICY "Users can update own profile" ON profiles FOR UPDATE USING (auth.uid() = user_id);
 
 -- Kontrol Penuh Admin
 CREATE POLICY "Admin manage partners" ON partners FOR ALL USING (public.is_admin());
