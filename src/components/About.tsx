@@ -72,6 +72,18 @@ export default function About() {
                 }
             });
 
+            // Specialized Tracks Reveal
+            gsap.from(".tracks-reveal", {
+                y: 30,
+                opacity: 0,
+                stagger: 0.1,
+                duration: 0.8,
+                scrollTrigger: {
+                    trigger: ".tracks-container",
+                    start: "top 85%",
+                }
+            });
+
             // Impact Reveal
             gsap.from(".impact-reveal", {
                 y: 50,
@@ -303,6 +315,35 @@ export default function About() {
                                 </div>
                             ))}
                         </div>
+                    </div>
+                </div>
+
+                {/* Specialized Tracks */}
+                <div className="mb-32 tracks-container">
+                    <div className="tracks-reveal mb-16 flex flex-col items-center text-center">
+                        <span className="text-phoenix font-mono text-[10px] tracking-[0.3em] uppercase mb-4">Focus Areas</span>
+                        <h2 className="text-3xl md:text-5xl font-display font-bold text-white tracking-tight uppercase">Specialized Tracks</h2>
+                        <p className="mt-4 text-white/40 font-light max-w-2xl text-sm">
+                            Kami memberikan pelatihan mendalam pada domain spesifik untuk mencetak tenaga ahli yang kompeten di bidangnya masing-masing.
+                        </p>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                        {[
+                            { title: "Web Hacking", desc: "Exploitation of web vulnerabilities, OWASP Top 10, and modern web security.", color: "from-blue-500/20" },
+                            { title: "Network Defense", desc: "Securing infrastructure, traffic analysis, and hardening server environments.", color: "from-green-500/20" },
+                            { title: "Mobile Security", desc: "Assessing Android/iOS applications and identifying mobile-specific threats.", color: "from-purple-500/20" },
+                            { title: "OSINT", desc: "Open-source intelligence gathering and digital footprint investigations.", color: "from-amber-500/20" }
+                        ].map((track, i) => (
+                            <div key={i} className={`tracks-reveal group p-8 bg-[#111] border border-white/5 hover:border-phoenix/30 transition-all relative overflow-hidden`}>
+                                <div className={`absolute inset-0 bg-gradient-to-br ${track.color} to-transparent opacity-0 group-hover:opacity-100 transition-opacity`} />
+                                <div className="relative z-10">
+                                    <div className="text-phoenix font-mono text-[10px] mb-2">TRACK_{i + 1 && String(i + 1).padStart(2, '0')}</div>
+                                    <h4 className="text-xl font-display font-bold text-white mb-4 group-hover:text-phoenix transition-colors">{track.title}</h4>
+                                    <p className="text-xs text-white/50 leading-relaxed font-light">{track.desc}</p>
+                                </div>
+                            </div>
+                        ))}
                     </div>
                 </div>
 
