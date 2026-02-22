@@ -14,9 +14,9 @@ export default function Footer() {
                 <div className="flex flex-wrap items-center justify-center md:justify-end gap-6 font-mono text-sm uppercase text-white/70">
                     <a href="https://webphoenix.vercel.app" target="_blank" className="text-phoenix hover:text-phoenix-light transition-colors">PHX CTF</a>
                     <a href="#" className="hover:text-phoenix transition-colors">Email</a>
-                    <a href="#" className="hover:text-phoenix transition-colors">Discord</a>
+                    <a href="https://discord.gg/HAWPsfJyKe" target="_blank" className="hover:text-phoenix transition-colors">Discord</a>
                     <a href="#" className="hover:text-phoenix transition-colors">GitHub</a>
-                    <a href="#" className="hover:text-phoenix transition-colors">Instagram</a>
+                    <a href="https://www.instagram.com/phoenixcysec_/" target="_blank" className="hover:text-phoenix transition-colors">Instagram</a>
                 </div>
             </div>
         </footer>
