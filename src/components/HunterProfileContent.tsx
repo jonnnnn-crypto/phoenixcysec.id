@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase";
 import { Medal, CheckCircle, Calendar, Globe, Twitter, Github } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 import React from "react";
 
 type Report = {
@@ -248,16 +249,17 @@ export default function HunterProfileContent({
             <div className="bg-[#111] border border-white/10 p-8 md:p-12 relative overflow-hidden flex flex-col md:flex-row items-center md:items-start gap-8 shadow-2xl">
                 <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-phoenix-light via-phoenix to-phoenix-dark" />
 
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
+                <Image
                     src={avatar}
                     alt={username}
-                    className="w-32 h-32 md:w-40 md:w-40 bg-charcoal rounded-xl border border-white/10 shadow-[0_0_20px_rgba(255,255,255,0.05)]"
+                    width={160}
+                    height={160}
+                    className="w-32 h-32 md:w-40 md:h-40 bg-charcoal rounded-xl border border-white/10 shadow-[0_0_20px_rgba(255,255,255,0.05)] object-cover"
                 />
 
                 <div className="flex-1 text-center md:text-left">
                     <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-phoenix/30 bg-phoenix/10 text-phoenix text-xs font-mono uppercase mb-4">
-                        <img src={RankImage} alt={rank} className="w-4 h-4 object-contain" /> {rank}
+                        <Image src={RankImage} alt={rank} width={16} height={16} className="object-contain" /> {rank}
                     </div>
                     <h1 className="font-display font-medium text-4xl text-white mb-2">{username}</h1>
                     <p className="text-white/60 font-sans font-light max-w-lg mb-6 leading-relaxed">
@@ -328,12 +330,12 @@ export default function HunterProfileContent({
                         <h3 className="font-display font-medium text-white text-xl mb-4 border-b border-white/10 pb-4">Badges</h3>
                         <div className="grid grid-cols-3 gap-4">
                             <div className="aspect-square bg-charcoal border border-white/5 flex items-center justify-center group relative cursor-help">
-                                <img src="/badge-first-report.png" alt="First Report" className="w-10 h-10 object-contain opacity-50 group-hover:opacity-100 transition-opacity" />
+                                <Image src="/badge-first-report.png" alt="First Report" width={40} height={40} className="object-contain opacity-50 group-hover:opacity-100 transition-opacity" />
                                 <div className="absolute -top-10 left-1/2 -translate-x-1/2 text-[10px] font-mono whitespace-nowrap bg-white text-black px-2 py-1 opacity-0 group-hover:opacity-100 transition-opacity">First Report</div>
                             </div>
                             {reports >= 5 && (
                                 <div className="aspect-square bg-charcoal border border-white/5 flex items-center justify-center group relative cursor-help">
-                                    <img src="/badge-veteran.png" alt="Veteran Hunter" className="w-10 h-10 object-contain opacity-50 group-hover:opacity-100 transition-opacity" />
+                                    <Image src="/badge-veteran.png" alt="Veteran Hunter" width={40} height={40} className="object-contain opacity-50 group-hover:opacity-100 transition-opacity" />
                                     <div className="absolute -top-10 left-1/2 -translate-x-1/2 text-[10px] font-mono whitespace-nowrap bg-white text-black px-2 py-1 opacity-0 group-hover:opacity-100 transition-opacity">Veteran Hunter</div>
                                 </div>
                             )}

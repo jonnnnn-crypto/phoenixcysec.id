@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { createClient } from '@/lib/supabase';
 import Link from 'next/link';
+import Image from 'next/image';
 import { Github, Twitter, Globe, FileWarning, ShieldAlert } from "lucide-react";
 import React from 'react';
 
@@ -185,7 +186,7 @@ export default function Leaderboard() {
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap">
                                                 <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-sm border bg-[#0a0a0a] text-[10px] font-mono uppercase tracking-wider font-bold transition-all ${config.bg} ${config.color}`}>
-                                                    <img src={config.image} alt={hunter.rank} className="w-3.5 h-3.5 object-contain" />
+                                                    <Image src={config.image} alt={hunter.rank} width={14} height={14} className="object-contain" />
                                                     {hunter.rank}
                                                 </div>
                                             </td>

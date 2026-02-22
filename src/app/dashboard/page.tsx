@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Image from 'next/image';
 import { createClient } from "@/lib/supabase";
 import { User } from "@supabase/supabase-js";
 import { Shield, FileWarning, Activity, Search, Crosshair, AlertTriangle, CheckCircle, Clock, Save, User as UserIcon } from "lucide-react";
@@ -235,7 +236,7 @@ export default function Dashboard() {
                                                 stats.rank === 'Flame Hunter' ? 'bg-blue-500/10 text-blue-400 border-blue-500/30' :
                                                     'bg-white/5 text-white/50 border-white/10'
                                         }`}>
-                                        <img
+                                        <Image
                                             src={
                                                 stats.rank === 'Ascended Phoenix' ? '/rank-ascended.png' :
                                                     stats.rank === 'Inferno Hunter' ? '/rank-inferno.png' :
@@ -244,7 +245,9 @@ export default function Dashboard() {
                                                                 '/rank-ember.png'
                                             }
                                             alt={stats.rank}
-                                            className="w-4 h-4 object-contain"
+                                            width={16}
+                                            height={16}
+                                            className="object-contain"
                                         />
                                         {stats.rank}
                                     </div>
