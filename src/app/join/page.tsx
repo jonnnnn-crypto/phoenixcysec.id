@@ -54,7 +54,7 @@ export default function JoinPage() {
             if (signUpError) {
                 setError(signUpError.message);
             } else {
-                setMessage('Registration successful! Please check your email to verify your account.');
+                setMessage('Registration successful!');
                 // Assuming we have a trigger to create the user profile or we will create it manually here
                 if (data.user) {
                     await supabase.from('users').insert({

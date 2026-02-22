@@ -574,7 +574,7 @@ export default function AdminDashboard() {
                                                                             initial={{ opacity: 0, scale: 0.98, y: -5 }}
                                                                             animate={{ opacity: 1, scale: 1, y: 0 }}
                                                                             exit={{ opacity: 0, scale: 0.98, y: -5 }}
-                                                                            className="absolute right-0 top-full mt-2 w-72 bg-[#0a0a0a] border border-white/10 rounded-2xl shadow-[0_25px_50px_rgba(0,0,0,0.8)] z-50 p-5 backdrop-blur-3xl"
+                                                                            className="absolute right-0 top-full mt-2 w-72 bg-[#0a0a0a] border border-white/10 rounded-2xl shadow-[0_25px_50px_rgba(0,0,0,0.8)] z-50 p-5 backdrop-blur-3xl max-h-[400px] overflow-y-auto scrollbar-thin scrollbar-thumb-white/10"
                                                                         >
                                                                             <div className="mb-4 pb-4 border-b border-white/5">
                                                                                 <div className="text-[7px] font-mono text-white/20 uppercase mb-3 tracking-[0.3em]">Select Hour (WIB)</div>
