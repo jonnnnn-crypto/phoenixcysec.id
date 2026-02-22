@@ -44,7 +44,7 @@ function PodiumItem({ hunter, position, height }: { hunter: Hunter, position: nu
                     #{position}
                 </div>
                 <div className={`relative w-20 h-20 md:w-24 md:h-24 rounded-full border-4 ${isFirst ? 'border-yellow-400' : isSecond ? 'border-gray-300' : 'border-amber-600'} overflow-hidden bg-charcoal shadow-2xl z-10 mb-[-20px]`}>
-                    <Image src={avatarSrc} alt={hunter.username} fill className="object-cover" />
+                    <Image src={avatarSrc} alt={hunter.username} fill className="object-cover" unoptimized={true} />
                 </div>
             </Link>
             <div className={`w-full flex flex-col items-center justify-start rounded-t-xl border-t border-l border-r backdrop-blur-md relative ${color} ${height} pt-8 pb-4 px-2`}>
@@ -219,6 +219,7 @@ export default function Leaderboard() {
                                                                 alt={hunter.username}
                                                                 fill
                                                                 sizes="48px"
+                                                                unoptimized={true}
                                                                 className="object-cover group-hover/hunter:scale-110 transition-transform duration-500"
                                                             />
                                                         </div>
