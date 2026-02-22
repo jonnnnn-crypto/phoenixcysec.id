@@ -126,7 +126,7 @@ order by total_points desc;
 UPDATE users SET role = 'admin' WHERE id = '79d56ea8-9318-4459-9bde-4f48779e4509';
 
 -- Fungsi pembantu untuk RLS Cek Admin
-CREATE OR REPLACE FUNCTION auth.is_admin() RETURNS BOOLEAN AS $$
+CREATE OR REPLACE FUNCTION public.is_admin() RETURNS BOOLEAN AS $$
 BEGIN
   RETURN EXISTS (
     SELECT 1 FROM public.users 
@@ -159,9 +159,9 @@ CREATE POLICY "Public read docs" ON documentation FOR SELECT USING (true);
 CREATE POLICY "Users read own reports" ON whitehat_reports FOR SELECT USING (auth.uid() = user_id OR status = 'approved');
 
 -- Kontrol Penuh Admin
-CREATE POLICY "Admin manage partners" ON partners FOR ALL USING (auth.is_admin());
-CREATE POLICY "Admin manage docs" ON documentation FOR ALL USING (auth.is_admin());
-CREATE POLICY "Admin manage reports" ON whitehat_reports FOR ALL USING (auth.is_admin());
+CREATE POLICY "Admin manage partners" ON partners FOR ALL USING (public.is_admin());
+CREATE POLICY "Admin manage docs" ON documentation FOR ALL USING (public.is_admin());
+CREATE POLICY "Admin manage reports" ON whitehat_reports FOR ALL USING (public.is_admin());
 
 -- Insert Laporan (Member)
 CREATE POLICY "Members insert reports" ON whitehat_reports FOR INSERT WITH CHECK (auth.uid() = user_id);
