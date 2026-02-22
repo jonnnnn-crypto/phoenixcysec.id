@@ -18,4 +18,6 @@ alter table users enable row level security;
 drop policy if exists "Public user info viewable by everyone" on users;
 create policy "Public user info viewable by everyone" on users for select using (true);
 
-
+alter table whitehat_reports enable row level security;
+drop policy if exists "Approved reports are viewable by everyone." on whitehat_reports;
+create policy "Approved reports are viewable by everyone." on whitehat_reports for select using (status = 'approved');
