@@ -107,7 +107,7 @@ export default function About() {
                 <div className="mt-20 pt-12 border-t border-white/5 flex flex-wrap gap-8 items-center justify-between">
                     <div className="flex items-center gap-6">
                         <div className="flex flex-col">
-                            <span className="text-2xl font-display font-bold text-white italic">"Learn. Secure. Rise."</span>
+                            <span className="text-2xl font-display font-bold text-white italic">&quot;Learn. Secure. Rise.&quot;</span>
                             <span className="text-xs font-mono text-white/30 tracking-widest uppercase">The Phoenix Philosophy</span>
                         </div>
                     </div>
