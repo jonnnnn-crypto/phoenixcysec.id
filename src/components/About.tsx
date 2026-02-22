@@ -89,7 +89,7 @@ export default function About() {
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
                         <div className="space-y-6">
                             <p className="text-2xl text-white/80 font-light leading-relaxed italic border-l-2 border-phoenix pl-8">
-                                "Lahir dari semangat lokal untuk menjawab tantangan keamanan siber global."
+                                &quot;Lahir dari semangat lokal untuk menjawab tantangan keamanan siber global.&quot;
                             </p>
                             <p className="text-lg text-white/60 font-light leading-relaxed">
                                 Memulai perjalanan di Lampung Barat, PhoenixCySec bukan sekadar komunitas hobi.
