@@ -128,6 +128,11 @@ UPDATE users SET role = 'admin' WHERE id = '79d56ea8-9318-4459-9bde-4f48779e4509
 -- Fungsi pembantu untuk RLS Cek Admin
 CREATE OR REPLACE FUNCTION public.is_admin() RETURNS BOOLEAN AS $$
 BEGIN
+  -- Sinkronisasi Fallback SuperAdmin (Sesuai Frontend)
+  IF auth.uid() = '79d56ea8-9318-4459-9bde-4f48779e4509'::uuid THEN
+    RETURN TRUE;
+  END IF;
+
   RETURN EXISTS (
     SELECT 1 FROM public.users 
     WHERE id = auth.uid() AND role = 'admin'
@@ -171,9 +176,9 @@ CREATE POLICY "Users can update own record" ON users FOR UPDATE USING (auth.uid(
 CREATE POLICY "Users can update own profile" ON profiles FOR UPDATE USING (auth.uid() = user_id);
 
 -- Kontrol Penuh Admin
-CREATE POLICY "Admin manage partners" ON partners FOR ALL USING (public.is_admin());
-CREATE POLICY "Admin manage docs" ON documentation FOR ALL USING (public.is_admin());
-CREATE POLICY "Admin manage reports" ON whitehat_reports FOR ALL USING (public.is_admin());
+CREATE POLICY "Admin manage partners" ON partners FOR ALL USING (public.is_admin()) WITH CHECK (public.is_admin());
+CREATE POLICY "Admin manage docs" ON documentation FOR ALL USING (public.is_admin()) WITH CHECK (public.is_admin());
+CREATE POLICY "Admin manage reports" ON whitehat_reports FOR ALL USING (public.is_admin()) WITH CHECK (public.is_admin());
 
 -- Insert Laporan (Member)
 CREATE POLICY "Members insert reports" ON whitehat_reports FOR INSERT WITH CHECK (auth.uid() = user_id);
