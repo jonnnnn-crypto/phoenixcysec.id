@@ -14,6 +14,7 @@ type Report = {
     status: string;
     created_at: string;
     points: number;
+    target_type?: string;
 };
 
 export default function Dashboard() {
@@ -23,6 +24,7 @@ export default function Dashboard() {
 
     // Form states
     const [target, setTarget] = useState("");
+    const [targetType, setTargetType] = useState("Company");
     const [vulnType, setVulnType] = useState("");
     const [severity, setSeverity] = useState("low");
     const [year, setYear] = useState(new Date().getFullYear().toString());
@@ -85,6 +87,7 @@ export default function Dashboard() {
         const { data, error } = await supabase.from('whitehat_reports').insert([{
             user_id: user.id,
             target,
+            target_type: targetType,
             vulnerability: vulnType,
             severity,
             report_year: parseInt(year),
@@ -98,7 +101,7 @@ export default function Dashboard() {
         } else if (data) {
             setHistory(prev => [data[0] as Report, ...prev]);
             setActiveTab("history");
-            setTarget(""); setVulnType(""); setLink(""); setDesc(""); setSeverity("low");
+            setTarget(""); setTargetType("Company"); setVulnType(""); setLink(""); setDesc(""); setSeverity("low");
         }
         setIsSubmitting(false);
     };
@@ -210,9 +213,20 @@ export default function Dashboard() {
                                             <input type="text" value={target} onChange={e => setTarget(e.target.value)} className="w-full bg-[#0a0a0a]/50 border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-phoenix focus:ring-1 focus:ring-phoenix/50 font-mono text-sm transition-all" placeholder="e.g. *.target.com" required />
                                         </div>
                                         <div className="space-y-2">
-                                            <label className="block text-white/60 text-xs font-mono uppercase tracking-wider">Vulnerability Class</label>
-                                            <input type="text" value={vulnType} onChange={e => setVulnType(e.target.value)} className="w-full bg-[#0a0a0a]/50 border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-phoenix focus:ring-1 focus:ring-phoenix/50 font-mono text-sm transition-all" placeholder="e.g. Remote Code Execution" required />
+                                            <label className="block text-white/60 text-xs font-mono uppercase tracking-wider">Target Organization Type</label>
+                                            <select value={targetType} onChange={e => setTargetType(e.target.value)} className="w-full bg-[#0a0a0a]/50 border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-phoenix focus:ring-1 focus:ring-phoenix/50 font-mono text-sm appearance-none transition-all">
+                                                <option value="Company">Private Company</option>
+                                                <option value="Government">Government Agency</option>
+                                                <option value="Educational">Educational Institution</option>
+                                                <option value="Open Source">Open Source Project</option>
+                                                <option value="Other">Other</option>
+                                            </select>
                                         </div>
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        <label className="block text-white/60 text-xs font-mono uppercase tracking-wider">Vulnerability Class</label>
+                                        <input type="text" value={vulnType} onChange={e => setVulnType(e.target.value)} className="w-full bg-[#0a0a0a]/50 border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-phoenix focus:ring-1 focus:ring-phoenix/50 font-mono text-sm transition-all" placeholder="e.g. Remote Code Execution" required />
                                     </div>
 
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -287,7 +301,14 @@ export default function Dashboard() {
 
                                                     {/* Target & Title */}
                                                     <div className="md:col-span-4">
-                                                        <h3 className="text-white font-medium text-sm md:text-base mb-1 truncate" title={report.target}>{report.target}</h3>
+                                                        <div className="flex items-center gap-2 mb-1">
+                                                            <h3 className="text-white font-medium text-sm md:text-base truncate" title={report.target}>{report.target}</h3>
+                                                            {report.target_type && (
+                                                                <span className="text-white/30 text-[9px] font-mono border border-white/10 px-1.5 py-0.5 rounded tracking-wider uppercase hidden md:inline-block">
+                                                                    {report.target_type}
+                                                                </span>
+                                                            )}
+                                                        </div>
                                                         <p className="text-white/40 font-mono text-xs line-clamp-1 block md:hidden mb-2">{report.vulnerability}</p>
                                                     </div>
 

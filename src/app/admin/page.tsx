@@ -9,6 +9,7 @@ type PendingReport = {
     id: string;
     vulnerability: string;
     target: string;
+    target_type?: string;
     severity: string;
     created_at: string;
     description: string;
@@ -260,7 +261,10 @@ export default function AdminDashboard() {
                                                             </span>
                                                             <span className="font-mono text-xs text-white/40">{new Date(report.created_at).toLocaleDateString()}</span>
                                                         </div>
-                                                        <h3 className="font-medium text-white text-lg">{report.vulnerability} on {report.target}</h3>
+                                                        <h3 className="font-medium text-white text-lg">
+                                                            {report.vulnerability} on {report.target}
+                                                            {report.target_type && <span className="text-white/40 font-mono text-sm ml-2">({report.target_type})</span>}
+                                                        </h3>
                                                         <p className="font-mono text-sm text-white/50 mt-1">Submitted by <span className="text-white">@{report.users?.username || 'Unknown'}</span></p>
                                                     </div>
                                                     <div className="flex gap-2">
