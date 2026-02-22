@@ -7,7 +7,7 @@ import {
     Users, FileWarning, Handshake, ShieldAlert, CheckCircle,
     XCircle, Loader2, Trash2, Plus, Calendar, Settings,
     ChevronRight, LayoutDashboard, Database,
-    ExternalLink, AlertTriangle, Search
+    ExternalLink, AlertTriangle, Search, Clock
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -74,6 +74,7 @@ export default function AdminDashboard() {
     const [newEventLocation, setNewEventLocation] = useState("");
     const [newEventCapacity, setNewEventCapacity] = useState(50);
     const [newEventDiscord, setNewEventDiscord] = useState("");
+    const [showTimePicker, setShowTimePicker] = useState(false);
 
     const router = useRouter();
     const supabase = createClient();
@@ -538,7 +539,73 @@ export default function AdminDashboard() {
                                                     </div>
 
                                                     <div className="relative group">
-                                                        <input type="datetime-local" required value={newEventDate} onChange={e => setNewEventDate(e.target.value)} className="w-full bg-black border border-white/10 p-4 pb-1 group-focus-within:border-phoenix text-white font-mono text-sm outline-none transition-all rounded-t" />
+                                                        <div className="flex gap-2 mb-2">
+                                                            <input
+                                                                type="datetime-local"
+                                                                required
+                                                                value={newEventDate}
+                                                                onChange={e => setNewEventDate(e.target.value)}
+                                                                className="flex-1 bg-black border border-white/10 p-4 pb-1 group-focus-within:border-phoenix text-white font-mono text-sm outline-none transition-all rounded-t"
+                                                            />
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => setShowTimePicker(!showTimePicker)}
+                                                                className={`px-4 rounded-t border transition-all flex items-center gap-2 font-mono text-[10px] uppercase ${showTimePicker ? 'bg-phoenix border-phoenix text-white' : 'bg-white/5 border-white/10 text-white/40 hover:text-white'}`}
+                                                            >
+                                                                <Clock size={14} /> {showTimePicker ? 'Close' : 'Pick Time'}
+                                                            </button>
+                                                        </div>
+
+                                                        <AnimatePresence>
+                                                            {showTimePicker && (
+                                                                <motion.div
+                                                                    initial={{ opacity: 0, y: -10 }}
+                                                                    animate={{ opacity: 1, y: 0 }}
+                                                                    exit={{ opacity: 0, y: -10 }}
+                                                                    className="absolute right-0 top-full mt-2 w-72 bg-[#111] border border-white/10 rounded-xl shadow-2xl z-50 p-4"
+                                                                >
+                                                                    <div className="mb-4 pb-4 border-b border-white/5">
+                                                                        <div className="text-[9px] font-mono text-white/20 uppercase mb-3">Select Hour (WIB)</div>
+                                                                        <div className="grid grid-cols-6 gap-1">
+                                                                            {Array.from({ length: 24 }).map((_, i) => {
+                                                                                const h = String(i).padStart(2, '0');
+                                                                                const currentH = newEventDate.split('T')[1]?.split(':')[0];
+                                                                                return (
+                                                                                    <button
+                                                                                        key={h}
+                                                                                        type="button"
+                                                                                        onClick={() => setQuickTime(`${h}:${newEventDate.split('T')[1]?.split(':')[1] || '00'}`)}
+                                                                                        className={`p-1.5 text-[10px] font-mono rounded transition-all ${currentH === h ? 'bg-phoenix text-white' : 'hover:bg-white/5 text-white/40'}`}
+                                                                                    >
+                                                                                        {h}
+                                                                                    </button>
+                                                                                );
+                                                                            })}
+                                                                        </div>
+                                                                    </div>
+                                                                    <div>
+                                                                        <div className="text-[9px] font-mono text-white/20 uppercase mb-3">Select Minute</div>
+                                                                        <div className="grid grid-cols-6 gap-1">
+                                                                            {[0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55].map((m) => {
+                                                                                const min = String(m).padStart(2, '0');
+                                                                                const currentM = newEventDate.split('T')[1]?.split(':')[1];
+                                                                                return (
+                                                                                    <button
+                                                                                        key={min}
+                                                                                        type="button"
+                                                                                        onClick={() => setQuickTime(`${newEventDate.split('T')[1]?.split(':')[0] || '19'}:${min}`)}
+                                                                                        className={`p-1.5 text-[10px] font-mono rounded transition-all ${currentM === min ? 'bg-phoenix text-white' : 'hover:bg-white/5 text-white/40'}`}
+                                                                                    >
+                                                                                        {min}
+                                                                                    </button>
+                                                                                );
+                                                                            })}
+                                                                        </div>
+                                                                    </div>
+                                                                </motion.div>
+                                                            )}
+                                                        </AnimatePresence>
+
                                                         <div className="bg-black/50 border-x border-b border-white/10 rounded-b p-2 flex justify-between items-center">
                                                             <div className="flex gap-1">
                                                                 <button type="button" onClick={() => adjustTime(-60)} className="text-[9px] font-mono text-white/30 hover:text-white px-1.5 py-0.5 border border-white/5 rounded">-1h</button>
