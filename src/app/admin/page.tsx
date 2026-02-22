@@ -107,6 +107,29 @@ export default function AdminDashboard() {
         }
     };
 
+    const setNowTime = () => {
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const day = String(now.getDate()).padStart(2, '0');
+        const hours = String(now.getHours()).padStart(2, '0');
+        const minutes = String(now.getMinutes()).padStart(2, '0');
+        setNewEventDate(`${year}-${month}-${day}T${hours}:${minutes}`);
+    };
+
+    const adjustTime = (minutes: number) => {
+        if (!newEventDate) return;
+        const date = new Date(newEventDate);
+        date.setMinutes(date.getMinutes() + minutes);
+
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        const hours = String(date.getHours()).padStart(2, '0');
+        const min = String(date.getMinutes()).padStart(2, '0');
+        setNewEventDate(`${year}-${month}-${day}T${hours}:${minutes < 0 && date.getMinutes() === 0 ? '00' : min}`);
+    };
+
     const fetchDashboardData = async () => {
         const { data: reportsData } = await supabase
             .from('whitehat_reports')
@@ -506,14 +529,29 @@ export default function AdminDashboard() {
                                             <div className="grid grid-cols-2 gap-4">
                                                 <div>
                                                     <div className="flex justify-between items-center mb-2">
-                                                        <label className="block text-[10px] font-mono text-white/30 uppercase">Date & Time</label>
+                                                        <label className="block text-[10px] font-mono text-white/30 uppercase">Event Time (WIB/UTC+7)</label>
                                                         <div className="flex gap-1">
+                                                            <button type="button" onClick={setNowTime} className="text-[9px] font-mono text-phoenix hover:text-white border border-phoenix/20 px-1 rounded transition-colors">NOW</button>
                                                             <button type="button" onClick={() => setQuickDate('tomorrow')} className="text-[9px] font-mono text-phoenix hover:text-white border border-phoenix/20 px-1 rounded transition-colors">TMRW</button>
                                                             <button type="button" onClick={() => setQuickDate('saturday')} className="text-[9px] font-mono text-phoenix hover:text-white border border-phoenix/20 px-1 rounded transition-colors">SAT</button>
                                                         </div>
                                                     </div>
-                                                    <input type="datetime-local" required value={newEventDate} onChange={e => setNewEventDate(e.target.value)} className="w-full bg-black border border-white/10 p-4 text-white font-mono text-sm outline-none focus:border-phoenix rounded" />
-                                                    <div className="flex gap-2 mt-2">
+
+                                                    <div className="relative group">
+                                                        <input type="datetime-local" required value={newEventDate} onChange={e => setNewEventDate(e.target.value)} className="w-full bg-black border border-white/10 p-4 pb-1 group-focus-within:border-phoenix text-white font-mono text-sm outline-none transition-all rounded-t" />
+                                                        <div className="bg-black/50 border-x border-b border-white/10 rounded-b p-2 flex justify-between items-center">
+                                                            <div className="flex gap-1">
+                                                                <button type="button" onClick={() => adjustTime(-60)} className="text-[9px] font-mono text-white/30 hover:text-white px-1.5 py-0.5 border border-white/5 rounded">-1h</button>
+                                                                <button type="button" onClick={() => adjustTime(60)} className="text-[9px] font-mono text-white/30 hover:text-white px-1.5 py-0.5 border border-white/5 rounded">+1h</button>
+                                                                <button type="button" onClick={() => adjustTime(15)} className="text-[9px] font-mono text-white/30 hover:text-white px-1.5 py-0.5 border border-white/5 rounded">+15m</button>
+                                                            </div>
+                                                            <div className="text-[9px] font-mono text-phoenix/50 uppercase">
+                                                                {newEventDate ? new Date(newEventDate).toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'short' }) : '-- -- --'}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="flex gap-2 mt-3">
                                                         <button type="button" onClick={() => setQuickTime('19:00')} className="text-[9px] font-mono text-white/40 hover:text-white bg-white/5 px-2 py-1 rounded transition-colors">19:00</button>
                                                         <button type="button" onClick={() => setQuickTime('20:00')} className="text-[9px] font-mono text-white/40 hover:text-white bg-white/5 px-2 py-1 rounded transition-colors">20:00</button>
                                                         <button type="button" onClick={() => setQuickTime('21:00')} className="text-[9px] font-mono text-white/40 hover:text-white bg-white/5 px-2 py-1 rounded transition-colors">21:00</button>
