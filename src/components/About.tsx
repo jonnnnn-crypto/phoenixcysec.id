@@ -18,33 +18,51 @@ export default function About() {
                 opacity: 0,
                 stagger: 0.1,
                 duration: 1,
+                ease: "power2.out",
                 scrollTrigger: {
                     trigger: containerRef.current,
                     start: "top 80%",
                 }
             });
 
-            // Card stagger - using its own grid as trigger
+            // Card stagger - Pillars
             gsap.from(".about-card", {
-                y: 30,
+                y: 40,
                 opacity: 0,
                 stagger: 0.15,
                 duration: 0.8,
-                ease: "power3.out",
+                ease: "back.out(1.2)",
+                clearProps: "all",
                 scrollTrigger: {
                     trigger: ".about-grid",
                     start: "top 85%",
                 }
             });
 
-            // Core Values Reveal - individual trigger
+            // Core Values Reveal
             gsap.from(".values-reveal", {
                 y: 30,
                 opacity: 0,
                 stagger: 0.1,
                 duration: 0.8,
+                ease: "power2.out",
+                clearProps: "all",
                 scrollTrigger: {
                     trigger: ".values-grid",
+                    start: "top 85%",
+                }
+            });
+
+            // Specialized Tracks Reveal
+            gsap.from(".tracks-reveal", {
+                y: 30,
+                opacity: 0,
+                stagger: 0.1,
+                duration: 0.8,
+                ease: "power2.out",
+                clearProps: "all",
+                scrollTrigger: {
+                    trigger: ".tracks-container",
                     start: "top 85%",
                 }
             });
@@ -66,21 +84,10 @@ export default function About() {
                 opacity: 0,
                 stagger: 0.3,
                 duration: 1,
+                ease: "power2.out",
                 scrollTrigger: {
                     trigger: ".timeline-container",
                     start: "top 60%",
-                }
-            });
-
-            // Specialized Tracks Reveal
-            gsap.from(".tracks-reveal", {
-                y: 30,
-                opacity: 0,
-                stagger: 0.1,
-                duration: 0.8,
-                scrollTrigger: {
-                    trigger: ".tracks-container",
-                    start: "top 85%",
                 }
             });
 
@@ -88,15 +95,16 @@ export default function About() {
             gsap.from(".impact-reveal", {
                 y: 50,
                 opacity: 0,
-                stagger: 0.1,
+                stagger: 0.15,
                 duration: 1,
+                ease: "power2.out",
                 scrollTrigger: {
                     trigger: ".impact-container",
                     start: "top 80%",
                 }
             });
 
-            // Footer Quote reveal
+            // Footer Reveal
             gsap.from(".footer-reveal", {
                 y: 20,
                 opacity: 0,
@@ -104,7 +112,7 @@ export default function About() {
                 duration: 1,
                 scrollTrigger: {
                     trigger: ".footer-section",
-                    start: "top 90%",
+                    start: "top 95%",
                 }
             });
         }, containerRef);
@@ -162,90 +170,27 @@ export default function About() {
 
                 {/* Core Pillars Grid */}
                 <div className="about-grid grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-32">
-                    <div className="about-card p-10 bg-[#111] border border-white/5 hover:border-phoenix/50 transition-all group relative overflow-hidden">
-                        <div className="absolute -right-4 -top-4 text-white/5 rotate-12 group-hover:text-phoenix/10 transition-colors">
-                            <Calendar size={120} />
+                    {[
+                        { icon: Calendar, title: "Established 2025", desc: "Dibangun di era digital yang semakin kompleks, kami mengadopsi standar keamanan paling mutakhir untuk memastikan relevansi kurikulum bagi setiap anggota." },
+                        { icon: GraduationCap, title: "Expert Mentorship", desc: "Bimbingan intensif dari praktisi berpengalaman yang telah berkecimpung dalam berbagai skenario pertahanan siber di industri nyata selama bertahun-tahun." },
+                        { icon: Users, title: "Elite Professionals", desc: "Fokus kami bukan pada kuantitas, melainkan kualitas lulusan yang memiliki etika tinggi dan kemampuan teknis yang siap diadu di level nasional." },
+                        { icon: ShieldCheck, title: "Global Standards", desc: "Kurikulum kami mengacu pada kerangka kerja internasional seperti NIST dan MITRE ATT&CK untuk memastikan standar pengamanan kelas dunia." },
+                        { icon: Target, title: "Real-World Case", desc: "Kami menggunakan skenario insiden nyata untuk melatih kemampuan analisis dan respons member terhadap ancaman yang sebenarnya di lapangan." },
+                        { icon: Zap, title: "Continuous Innovation", desc: "Dunia siber berubah setiap detik. Kami terus melakukan riset dan memperbarui metode pengajaran agar selalu selangkah di depan para penyerang." }
+                    ].map((pillar, i) => (
+                        <div key={i} className="about-card p-10 bg-[#111] border border-white/5 hover:border-phoenix/50 transition-colors duration-300 group relative overflow-hidden">
+                            <div className="absolute -right-4 -top-4 text-white/5 rotate-12 group-hover:text-phoenix/10 transition-colors duration-500">
+                                <pillar.icon size={120} />
+                            </div>
+                            <div className="p-4 bg-phoenix/10 text-phoenix rounded-xl w-fit mb-6 group-hover:scale-110 transition-transform duration-300">
+                                <pillar.icon size={28} />
+                            </div>
+                            <h3 className="text-2xl font-display font-bold text-white mb-4">{pillar.title}</h3>
+                            <p className="text-white/50 text-sm leading-relaxed font-light">
+                                {pillar.desc}
+                            </p>
                         </div>
-                        <div className="p-4 bg-phoenix/10 text-phoenix rounded-xl w-fit mb-6 group-hover:scale-110 transition-transform">
-                            <Calendar size={28} />
-                        </div>
-                        <h3 className="text-2xl font-display font-bold text-white mb-4">Established 2025</h3>
-                        <p className="text-white/50 text-sm leading-relaxed font-light">
-                            Dibangun di era digital yang semakin kompleks, kami mengadopsi standar keamanan
-                            paling mutakhir untuk memastikan relevansi kurikulum bagi setiap anggota.
-                        </p>
-                    </div>
-
-                    <div className="about-card p-10 bg-[#111] border border-white/5 hover:border-phoenix/50 transition-all group relative overflow-hidden">
-                        <div className="absolute -right-4 -top-4 text-white/5 rotate-12 group-hover:text-phoenix/10 transition-colors">
-                            <GraduationCap size={120} />
-                        </div>
-                        <div className="p-4 bg-phoenix/10 text-phoenix rounded-xl w-fit mb-6 group-hover:scale-110 transition-transform">
-                            <GraduationCap size={28} />
-                        </div>
-                        <h3 className="text-2xl font-display font-bold text-white mb-4">Expert Mentorship</h3>
-                        <p className="text-white/50 text-sm leading-relaxed font-light">
-                            Bimbingan intensif dari praktisi berpengalaman yang telah berkecimpung dalam
-                            berbagai skenario pertahanan siber di industri nyata selama bertahun-tahun.
-                        </p>
-                    </div>
-
-                    <div className="about-card p-10 bg-[#111] border border-white/5 hover:border-phoenix/50 transition-all group relative overflow-hidden">
-                        <div className="absolute -right-4 -top-4 text-white/5 rotate-12 group-hover:text-phoenix/10 transition-colors">
-                            <Users size={120} />
-                        </div>
-                        <div className="p-4 bg-phoenix/10 text-phoenix rounded-xl w-fit mb-6 group-hover:scale-110 transition-transform">
-                            <Users size={28} />
-                        </div>
-                        <h3 className="text-2xl font-display font-bold text-white mb-4">Elite Professionals</h3>
-                        <p className="text-white/50 text-sm leading-relaxed font-light">
-                            Fokus kami bukan pada kuantitas, melainkan kualitas lulusan yang memiliki
-                            etika tinggi dan kemampuan teknis yang siap diadu di level nasional.
-                        </p>
-                    </div>
-
-                    {/* New Cards */}
-                    <div className="about-card p-10 bg-[#111] border border-white/5 hover:border-phoenix/50 transition-all group relative overflow-hidden">
-                        <div className="absolute -right-4 -top-4 text-white/5 rotate-12 group-hover:text-phoenix/10 transition-colors">
-                            <ShieldCheck size={120} />
-                        </div>
-                        <div className="p-4 bg-phoenix/10 text-phoenix rounded-xl w-fit mb-6 group-hover:scale-110 transition-transform">
-                            <ShieldCheck size={28} />
-                        </div>
-                        <h3 className="text-2xl font-display font-bold text-white mb-4">Global Standards</h3>
-                        <p className="text-white/50 text-sm leading-relaxed font-light">
-                            Kurikulum kami mengacu pada kerangka kerja internasional seperti NIST dan MITRE ATT&CK
-                            untuk memastikan standar pengamanan kelas dunia.
-                        </p>
-                    </div>
-
-                    <div className="about-card p-10 bg-[#111] border border-white/5 hover:border-phoenix/50 transition-all group relative overflow-hidden">
-                        <div className="absolute -right-4 -top-4 text-white/5 rotate-12 group-hover:text-phoenix/10 transition-colors">
-                            <Target size={120} />
-                        </div>
-                        <div className="p-4 bg-phoenix/10 text-phoenix rounded-xl w-fit mb-6 group-hover:scale-110 transition-transform">
-                            <Target size={28} />
-                        </div>
-                        <h3 className="text-2xl font-display font-bold text-white mb-4">Real-World Case</h3>
-                        <p className="text-white/50 text-sm leading-relaxed font-light">
-                            Kami menggunakan skenario insiden nyata untuk melatih kemampuan analisis
-                            dan respons member terhadap ancaman yang sebenarnya di lapangan.
-                        </p>
-                    </div>
-
-                    <div className="about-card p-10 bg-[#111] border border-white/5 hover:border-phoenix/50 transition-all group relative overflow-hidden">
-                        <div className="absolute -right-4 -top-4 text-white/5 rotate-12 group-hover:text-phoenix/10 transition-colors">
-                            <Zap size={120} />
-                        </div>
-                        <div className="p-4 bg-phoenix/10 text-phoenix rounded-xl w-fit mb-6 group-hover:scale-110 transition-transform">
-                            <Zap size={28} />
-                        </div>
-                        <h3 className="text-2xl font-display font-bold text-white mb-4">Continuous Innovation</h3>
-                        <p className="text-white/50 text-sm leading-relaxed font-light">
-                            Dunia siber berubah setiap detik. Kami terus melakukan riset dan memperbarui
-                            metode pengajaran agar selalu selangkah di depan para penyerang.
-                        </p>
-                    </div>
+                    ))}
                 </div>
 
                 {/* Core Values Section */}
@@ -262,7 +207,7 @@ export default function About() {
                             { icon: Globe2, title: "Collaboration", desc: "Pengetahuan hanya akan bernilai jika dibagikan untuk kepentingan pertahanan bersama." },
                             { icon: Target, title: "Precision", desc: "Detail kecil adalah perbedaan antara sistem yang aman dan sistem yang runtuh." }
                         ].map((val, i) => (
-                            <div key={i} className="values-reveal p-8 border border-white/5 bg-white/2 hover:bg-white/5 transition-colors">
+                            <div key={i} className="values-reveal p-8 border border-white/5 bg-white/2 hover:bg-white/5 transition-colors duration-300">
                                 <val.icon className="text-phoenix mb-4" size={24} />
                                 <h4 className="text-lg font-display font-bold text-white mb-2">{val.title}</h4>
                                 <p className="text-xs text-white/40 leading-relaxed font-light">{val.desc}</p>
@@ -335,11 +280,11 @@ export default function About() {
                             { title: "Mobile Security", desc: "Assessing Android/iOS applications and identifying mobile-specific threats.", color: "from-purple-500/20" },
                             { title: "OSINT", desc: "Open-source intelligence gathering and digital footprint investigations.", color: "from-amber-500/20" }
                         ].map((track, i) => (
-                            <div key={i} className={`tracks-reveal group p-8 bg-[#111] border border-white/5 hover:border-phoenix/30 transition-all relative overflow-hidden`}>
-                                <div className={`absolute inset-0 bg-gradient-to-br ${track.color} to-transparent opacity-0 group-hover:opacity-100 transition-opacity`} />
+                            <div key={i} className={`tracks-reveal group p-8 bg-[#111] border border-white/5 hover:border-phoenix/30 transition-all duration-300 relative overflow-hidden`}>
+                                <div className={`absolute inset-0 bg-gradient-to-br ${track.color} to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500`} />
                                 <div className="relative z-10">
-                                    <div className="text-phoenix font-mono text-[10px] mb-2">TRACK_{i + 1 && String(i + 1).padStart(2, '0')}</div>
-                                    <h4 className="text-xl font-display font-bold text-white mb-4 group-hover:text-phoenix transition-colors">{track.title}</h4>
+                                    <div className="text-phoenix font-mono text-[10px] mb-2">TRACK_{String(i + 1).padStart(2, '0')}</div>
+                                    <h4 className="text-xl font-display font-bold text-white mb-4 group-hover:text-phoenix transition-colors duration-300">{track.title}</h4>
                                     <p className="text-xs text-white/50 leading-relaxed font-light">{track.desc}</p>
                                 </div>
                             </div>
