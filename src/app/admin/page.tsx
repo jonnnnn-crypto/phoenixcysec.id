@@ -427,7 +427,7 @@ export default function AdminDashboard() {
                                                     <h4 className="text-xl font-display font-medium text-white mb-2">{report.vulnerability}</h4>
                                                     <div className="flex items-center gap-2 text-xs font-mono text-white/40 mb-6 uppercase">
                                                         <Database size={12} className="text-phoenix" /> {report.target}
-                                                        {report.target_type && <span className="px-1.5 py-0.5 bg-white/5 rounded text-[9px]">{report.target_type}</span>}
+                                                        {report.target_type && <span className="px-2 py-0.5 bg-black border border-white/10 text-white/90 rounded text-[9px] font-bold tracking-wider">{report.target_type}</span>}
                                                         <span className="mx-2 opacity-20">/</span>
                                                         <Users size={12} className="text-phoenix" /> @{report.users?.username || 'Unknown'}
                                                     </div>
