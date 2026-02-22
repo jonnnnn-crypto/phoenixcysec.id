@@ -19,8 +19,9 @@ export default async function HunterProfile({ params }: { params: { username: st
     const { data: hunterStats } = await supabase
         .from('bughunter_leaderboard')
         .select('*')
-        .eq('username', username)
-        .single();
+        .ilike('username', username)
+        .limit(1)
+        .maybeSingle();
 
     // Fetch basic user profile info joining users & profiles
     const { data: userData, error: userError } = await supabase
@@ -30,8 +31,9 @@ export default async function HunterProfile({ params }: { params: { username: st
             created_at, 
             profiles (avatar, bio, skills, github_url, twitter_url, instagram_url, linkedin_url, website_url)
         `)
-        .eq('username', username)
-        .single();
+        .ilike('username', username)
+        .limit(1)
+        .maybeSingle();
 
     // Fetch Recent Approved Reports for this specific user
     let recentReports = [];
