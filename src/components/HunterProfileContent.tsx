@@ -234,7 +234,7 @@ export default function HunterProfileContent({
                         <span className="animate-pulse">⚠️</span> DIAGNOSTIC: MOCK MODE ACTIVE
                     </div>
                     <p className="font-mono text-xs text-white/60 mb-4">
-                        Aplikasi tidak dapat menemukan data user "{username}" di database pusat. Ini biasanya terjadi jika:
+                        Aplikasi tidak dapat menemukan data user &quot;{username}&quot; di database pusat. Ini biasanya terjadi jika:
                     </p>
                     <ul className="list-disc list-inside font-mono text-[11px] text-white/50 space-y-1">
                         <li>Username mungkin berbeda besar-kecil huruf (*case-sensitive*) di DB.</li>
