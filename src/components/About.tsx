@@ -12,8 +12,8 @@ export default function About() {
 
     useEffect(() => {
         const ctx = gsap.context(() => {
-            // General reveal
-            gsap.from(".about-reveal", {
+            // Header Reveal
+            gsap.from(".about-header-reveal", {
                 y: 50,
                 opacity: 0,
                 stagger: 0.1,
@@ -24,7 +24,7 @@ export default function About() {
                 }
             });
 
-            // Card stagger
+            // Card stagger - using its own grid as trigger
             gsap.from(".about-card", {
                 y: 30,
                 opacity: 0,
@@ -33,7 +33,19 @@ export default function About() {
                 ease: "power3.out",
                 scrollTrigger: {
                     trigger: ".about-grid",
-                    start: "top 75%",
+                    start: "top 85%",
+                }
+            });
+
+            // Core Values Reveal - individual trigger
+            gsap.from(".values-reveal", {
+                y: 30,
+                opacity: 0,
+                stagger: 0.1,
+                duration: 0.8,
+                scrollTrigger: {
+                    trigger: ".values-grid",
+                    start: "top 85%",
                 }
             });
 
@@ -59,6 +71,30 @@ export default function About() {
                     start: "top 60%",
                 }
             });
+
+            // Impact Reveal
+            gsap.from(".impact-reveal", {
+                y: 50,
+                opacity: 0,
+                stagger: 0.1,
+                duration: 1,
+                scrollTrigger: {
+                    trigger: ".impact-container",
+                    start: "top 80%",
+                }
+            });
+
+            // Footer Quote reveal
+            gsap.from(".footer-reveal", {
+                y: 20,
+                opacity: 0,
+                stagger: 0.2,
+                duration: 1,
+                scrollTrigger: {
+                    trigger: ".footer-section",
+                    start: "top 90%",
+                }
+            });
         }, containerRef);
         return () => ctx.revert();
     }, []);
@@ -76,7 +112,7 @@ export default function About() {
 
             <div className="max-w-7xl mx-auto">
                 {/* Header Section */}
-                <div className="about-reveal mb-24">
+                <div className="about-header-reveal mb-24">
                     <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-phoenix/30 bg-phoenix/10 text-phoenix text-xs font-mono tracking-widest uppercase mb-6">
                         <MapPin size={12} />
                         Rooted Identity
@@ -158,8 +194,8 @@ export default function About() {
                 </div>
 
                 {/* Core Values Section */}
-                <div className="mb-32">
-                    <div className="about-reveal flex flex-col items-center text-center mb-16">
+                <div className="mb-32 values-grid">
+                    <div className="values-reveal flex flex-col items-center text-center mb-16">
                         <span className="text-phoenix font-mono text-[10px] tracking-[0.3em] uppercase mb-4">The Ethical Framework</span>
                         <h2 className="text-3xl md:text-5xl font-display font-bold text-white uppercase tracking-tight">Our Core Values</h2>
                     </div>
@@ -171,7 +207,7 @@ export default function About() {
                             { icon: Globe2, title: "Collaboration", desc: "Pengetahuan hanya akan bernilai jika dibagikan untuk kepentingan pertahanan bersama." },
                             { icon: Target, title: "Precision", desc: "Detail kecil adalah perbedaan antara sistem yang aman dan sistem yang runtuh." }
                         ].map((val, i) => (
-                            <div key={i} className="about-reveal p-8 border border-white/5 bg-white/2 hover:bg-white/5 transition-colors">
+                            <div key={i} className="values-reveal p-8 border border-white/5 bg-white/2 hover:bg-white/5 transition-colors">
                                 <val.icon className="text-phoenix mb-4" size={24} />
                                 <h4 className="text-lg font-display font-bold text-white mb-2">{val.title}</h4>
                                 <p className="text-xs text-white/40 leading-relaxed font-light">{val.desc}</p>
@@ -182,7 +218,7 @@ export default function About() {
 
                 {/* The Journey Timeline */}
                 <div className="mb-32 timeline-container">
-                    <div className="about-reveal mb-16">
+                    <div className="values-reveal mb-16">
                         <h2 className="text-3xl md:text-5xl font-display font-bold text-white tracking-tight text-center lg:text-left">
                             The <span className="text-phoenix">Journey</span> Roadmap
                         </h2>
@@ -228,19 +264,19 @@ export default function About() {
                 </div>
 
                 {/* Impact Vision */}
-                <div className="about-reveal p-12 md:p-20 bg-gradient-to-br from-phoenix/10 to-transparent border border-phoenix/20 relative overflow-hidden">
+                <div className="impact-container p-12 md:p-20 bg-gradient-to-br from-phoenix/10 to-transparent border border-phoenix/20 relative overflow-hidden">
                     <div className="absolute top-0 right-0 p-12 overflow-hidden opacity-5 pointer-events-none">
                         <ShieldCheck size={400} />
                     </div>
 
                     <div className="relative z-10 grid grid-cols-1 lg:grid-cols-3 gap-12 items-center text-center lg:text-left">
-                        <div className="lg:col-span-2">
+                        <div className="lg:col-span-2 impact-reveal">
                             <h2 className="text-3xl md:text-5xl font-display font-bold text-white mb-6 uppercase tracking-tight">Our Impact Vision</h2>
                             <p className="text-xl text-white/70 font-light leading-relaxed">
                                 Mencetak 100+ profesional cybersecurity bersertifikat setiap tahunnya, yang tidak hanya ahli secara teknis tetapi juga memegang teguh komitmen moral dalam melindungi infrastruktur digital Indonesia.
                             </p>
                         </div>
-                        <div className="flex flex-col gap-6">
+                        <div className="flex flex-col gap-6 impact-reveal">
                             <div className="p-6 bg-[#000]/50 border border-white/5">
                                 <Briefcase className="text-phoenix mb-2" size={24} />
                                 <div className="text-3xl font-display font-bold text-white">100+</div>
@@ -256,14 +292,14 @@ export default function About() {
                 </div>
 
                 {/* Final Quote */}
-                <div className="mt-32 pt-12 border-t border-white/5 flex flex-wrap gap-8 items-center justify-between opacity-80">
-                    <div className="flex items-center gap-6 about-reveal">
+                <div className="mt-32 pt-12 border-t border-white/5 flex flex-wrap gap-8 items-center justify-between opacity-80 footer-section">
+                    <div className="flex items-center gap-6 footer-reveal">
                         <div className="flex flex-col">
                             <span className="text-3xl md:text-4xl font-display font-bold text-white italic tracking-tight">&quot;Learn. Secure. Rise.&quot;</span>
                             <span className="text-xs font-mono text-phoenix/60 tracking-[0.4em] uppercase pt-2">The Phoenix Philosophy</span>
                         </div>
                     </div>
-                    <div className="flex items-center gap-4 text-xs font-mono text-white/30 about-reveal">
+                    <div className="flex items-center gap-4 text-xs font-mono text-white/30 footer-reveal">
                         <span>PHOENIXCYSEC // VERSION 1.1</span>
                         <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
                     </div>
@@ -272,5 +308,3 @@ export default function About() {
         </section>
     );
 }
-
-
