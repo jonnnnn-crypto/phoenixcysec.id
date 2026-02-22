@@ -47,6 +47,45 @@ export default function Dashboard() {
     const supabase = createClient();
     const router = useRouter();
 
+    const fetchHistory = async (userId: string) => {
+        const { data, error } = await supabase
+            .from('whitehat_reports')
+            .select('*')
+            .eq('user_id', userId)
+            .order('created_at', { ascending: false });
+
+        if (!error && data) {
+            setHistory(data as Report[]);
+        }
+    };
+
+    const fetchProfile = async (userId: string) => {
+        const { data: profileData } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('user_id', userId)
+            .single();
+
+        if (profileData) {
+            setBio(profileData.bio || "");
+            setGithub(profileData.github_url || "");
+            setTwitter(profileData.twitter_url || "");
+            setInstagram(profileData.instagram_url || "");
+            setLinkedin(profileData.linkedin_url || "");
+            setWebsite(profileData.website_url || "");
+        }
+    };
+
+    const fetchStats = async (userId: string) => {
+        const { data: userData } = await supabase.from('users').select('username').eq('id', userId).single();
+        if (userData) {
+            const { data: statsData } = await supabase.from('bughunter_leaderboard').select('*').eq('username', userData.username).single();
+            if (statsData) {
+                setStats({ points: statsData.total_points, rank: statsData.rank, total_reports: statsData.total_reports, username: userData.username });
+            }
+        }
+    };
+
     useEffect(() => {
         const init = async () => {
             const { data: { session } } = await supabase.auth.getSession();
@@ -54,42 +93,42 @@ export default function Dashboard() {
                 router.push('/join');
                 return;
             }
+            const userId = session.user.id;
             setUser(session.user);
 
-            const { data, error } = await supabase
-                .from('whitehat_reports')
-                .select('*')
-                .eq('user_id', session.user.id)
-                .order('created_at', { ascending: false });
+            await Promise.all([
+                fetchHistory(userId),
+                fetchProfile(userId),
+                fetchStats(userId)
+            ]);
 
-            if (!error && data) {
-                setHistory(data as Report[]);
-            }
+            // Subscribe to real-time changes without filters for maximum reliability
+            const channel = supabase
+                .channel(`dashboard-sync-${userId}`)
+                .on('postgres_changes', { event: '*', schema: 'public', table: 'whitehat_reports' }, (payload) => {
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    const newPayload = payload.new as any;
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    const oldPayload = payload.old as any;
+                    if (newPayload?.user_id === userId || oldPayload?.user_id === userId) {
+                        fetchHistory(userId);
+                        fetchStats(userId);
+                    }
+                })
+                .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' }, (payload) => {
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    const newPayload = payload.new as any;
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    const oldPayload = payload.old as any;
+                    if (newPayload?.user_id === userId || oldPayload?.user_id === userId) {
+                        fetchProfile(userId);
+                    }
+                })
+                .subscribe();
 
-            // Fetch Profile
-            const { data: profileData } = await supabase
-                .from('profiles')
-                .select('*')
-                .eq('user_id', session.user.id)
-                .single();
-
-            if (profileData) {
-                setBio(profileData.bio || "");
-                setGithub(profileData.github_url || "");
-                setTwitter(profileData.twitter_url || "");
-                setInstagram(profileData.instagram_url || "");
-                setLinkedin(profileData.linkedin_url || "");
-                setWebsite(profileData.website_url || "");
-            }
-
-            // Fetch Username & Stats for Banner
-            const { data: userData } = await supabase.from('users').select('username').eq('id', session.user.id).single();
-            if (userData) {
-                const { data: statsData } = await supabase.from('bughunter_leaderboard').select('*').eq('username', userData.username).single();
-                if (statsData) {
-                    setStats({ points: statsData.total_points, rank: statsData.rank, total_reports: statsData.total_reports, username: userData.username });
-                }
-            }
+            return () => {
+                supabase.removeChannel(channel);
+            };
         };
         init();
         // eslint-disable-next-line react-hooks/exhaustive-deps

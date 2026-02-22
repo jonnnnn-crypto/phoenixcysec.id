@@ -98,6 +98,9 @@ export default function Leaderboard() {
             .on('postgres_changes', { event: '*', schema: 'public', table: 'users' }, () => {
                 fetchLeaderboard();
             })
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' }, () => {
+                fetchLeaderboard();
+            })
             .subscribe();
 
         return () => {
