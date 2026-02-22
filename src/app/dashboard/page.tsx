@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase";
 import { User } from "@supabase/supabase-js";
-import { Shield, FileWarning, Activity, Search, Crosshair, AlertTriangle, CheckCircle, Clock } from "lucide-react";
+import { Shield, FileWarning, Activity, Search, Crosshair, AlertTriangle, CheckCircle, Clock, Save, User as UserIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 type Report = {
@@ -30,6 +30,13 @@ export default function Dashboard() {
     const [desc, setDesc] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
 
+    // Profile states
+    const [bio, setBio] = useState("");
+    const [github, setGithub] = useState("");
+    const [twitter, setTwitter] = useState("");
+    const [website, setWebsite] = useState("");
+    const [isSavingProfile, setIsSavingProfile] = useState(false);
+
     const supabase = createClient();
     const router = useRouter();
 
@@ -50,6 +57,20 @@ export default function Dashboard() {
 
             if (!error && data) {
                 setHistory(data as Report[]);
+            }
+
+            // Fetch Profile
+            const { data: profileData } = await supabase
+                .from('profiles')
+                .select('*')
+                .eq('user_id', session.user.id)
+                .single();
+
+            if (profileData) {
+                setBio(profileData.bio || "");
+                setGithub(profileData.github_url || "");
+                setTwitter(profileData.twitter_url || "");
+                setWebsite(profileData.website_url || "");
             }
         };
         init();
@@ -80,6 +101,30 @@ export default function Dashboard() {
             setTarget(""); setVulnType(""); setLink(""); setDesc(""); setSeverity("low");
         }
         setIsSubmitting(false);
+    };
+
+    const handleUpdateProfile = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!user) return;
+        setIsSavingProfile(true);
+
+        const { error } = await supabase
+            .from('profiles')
+            .update({
+                bio,
+                github_url: github,
+                twitter_url: twitter,
+                website_url: website,
+                updated_at: new Date().toISOString()
+            })
+            .eq('user_id', user.id);
+
+        if (error) {
+            alert("Error updating profile: " + error.message);
+        } else {
+            alert("Profile updated successfully!");
+        }
+        setIsSavingProfile(false);
     };
 
     return (
@@ -132,6 +177,20 @@ export default function Dashboard() {
                                 <span>Audit Log</span>
                             </div>
                             <span className="bg-[#0a0a0a] text-xs px-2 py-1 rounded-md border border-white/10">{history.length}</span>
+                        </button>
+
+                        <button
+                            onClick={() => setActiveTab("profile")}
+                            className={`p-5 text-left font-mono text-sm transition-all flex items-center justify-between rounded-xl border backdrop-blur-md overflow-hidden relative group ${activeTab === "profile"
+                                ? "bg-phoenix/10 border-phoenix/50 text-white shadow-[0_0_30px_rgba(59,130,246,0.15)]"
+                                : "bg-white/5 border-white/10 text-white/50 hover:bg-white/10 hover:border-white/20"
+                                }`}
+                        >
+                            {activeTab === "profile" && <div className="absolute left-0 top-0 w-1 h-full bg-phoenix" />}
+                            <div className="flex items-center gap-3">
+                                <UserIcon size={18} className={activeTab === "profile" ? "text-phoenix" : ""} />
+                                <span>Profile Settings</span>
+                            </div>
                         </button>
                     </div>
 
@@ -199,41 +258,63 @@ export default function Dashboard() {
                                         <p className="text-white/40 font-mono text-sm uppercase tracking-widest">No intelligence gathered yet.</p>
                                     </div>
                                 ) : (
-                                    <div className="space-y-4">
+                                    <div className="space-y-3">
+                                        {/* Header Row (Desktop Only) */}
+                                        <div className="hidden md:grid grid-cols-12 gap-4 px-6 py-3 border-b border-white/10 text-white/40 font-mono text-xs uppercase tracking-wider">
+                                            <div className="col-span-1">Risk</div>
+                                            <div className="col-span-4">Target / Title</div>
+                                            <div className="col-span-3">Vulnerability Class</div>
+                                            <div className="col-span-2 text-center">Filed On</div>
+                                            <div className="col-span-2 text-right">Status</div>
+                                        </div>
+
                                         {history.map(report => (
-                                            <div key={report.id} className="p-5 border border-white/10 bg-[#0a0a0a]/50 rounded-xl hover:border-phoenix/30 transition-all group flex flex-col md:flex-row justify-between md:items-center gap-4">
-                                                <div className="flex-1">
-                                                    <div className="flex items-center gap-3 mb-2">
-                                                        <span className={`px-2 py-0.5 rounded text-[10px] font-mono uppercase font-bold tracking-wider ${report.severity === 'critical' ? 'bg-red-500/10 text-red-400 border border-red-500/20' :
+                                            <div key={report.id} className="group relative overflow-hidden bg-[#0a0a0a]/50 border border-white/5 hover:border-white/20 hover:bg-white/[0.02] rounded-xl transition-all p-5 md:py-4 md:px-6">
+                                                <div className="absolute left-0 top-0 bottom-0 w-1 bg-transparent group-hover:bg-phoenix/50 transition-colors" />
+
+                                                <div className="flex flex-col md:grid md:grid-cols-12 md:items-center gap-4 md:gap-4">
+
+                                                    {/* Risk Level */}
+                                                    <div className="md:col-span-1 flex items-center">
+                                                        <span className={`px-2 py-1 rounded text-[10px] font-mono uppercase font-bold tracking-wider ${report.severity === 'critical' ? 'bg-red-500/10 text-red-500 border border-red-500/20' :
                                                             report.severity === 'high' ? 'bg-orange-500/10 text-orange-400 border border-orange-500/20' :
-                                                                report.severity === 'medium' ? 'bg-yellow-500/10 text-yellow-400 border border-yellow-500/20' :
+                                                                report.severity === 'medium' ? 'bg-yellow-500/10 text-yellow-500 border border-yellow-500/20' :
                                                                     'bg-blue-500/10 text-blue-400 border border-blue-500/20'
                                                             }`}>
-                                                            {report.severity}
+                                                            {report.severity.substring(0, 4)}
                                                         </span>
-                                                        <h3 className="text-white font-medium text-lg">{report.target}</h3>
-                                                    </div>
-                                                    <p className="text-white/50 font-mono text-sm">{report.vulnerability}</p>
-                                                </div>
-
-                                                <div className="flex items-center gap-8 md:text-right">
-                                                    <div className="hidden md:block">
-                                                        <p className="text-white/30 text-xs font-mono mb-1">Filed On</p>
-                                                        <p className="text-white/70 font-mono text-sm flex items-center gap-2"><Clock size={14} /> {new Date(report.created_at).toLocaleDateString()}</p>
                                                     </div>
 
-                                                    <div className="min-w-[120px]">
+                                                    {/* Target & Title */}
+                                                    <div className="md:col-span-4">
+                                                        <h3 className="text-white font-medium text-sm md:text-base mb-1 truncate" title={report.target}>{report.target}</h3>
+                                                        <p className="text-white/40 font-mono text-xs line-clamp-1 block md:hidden mb-2">{report.vulnerability}</p>
+                                                    </div>
+
+                                                    {/* Vulnerability Class (Desktop) */}
+                                                    <div className="hidden md:block md:col-span-3 text-white/50 font-mono text-xs truncate" title={report.vulnerability}>
+                                                        {report.vulnerability}
+                                                    </div>
+
+                                                    {/* Filed On */}
+                                                    <div className="md:col-span-2 flex items-center md:justify-center text-white/50 font-mono text-xs gap-2">
+                                                        <Clock size={12} className="text-white/30" />
+                                                        {new Date(report.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+                                                    </div>
+
+                                                    {/* Status */}
+                                                    <div className="md:col-span-2 flex justify-start md:justify-end">
                                                         {report.status === 'approved' ? (
-                                                            <div className="inline-flex items-center gap-2 text-green-400 bg-green-400/10 border border-green-400/20 px-3 py-1.5 rounded-lg font-mono text-xs uppercase tracking-wider">
-                                                                <CheckCircle size={14} /> Approved
+                                                            <div className="inline-flex items-center gap-1.5 text-green-400 bg-green-400/10 border border-green-400/20 px-2.5 py-1 rounded font-mono text-[10px] uppercase tracking-wider">
+                                                                <CheckCircle size={12} /> Approved
                                                             </div>
                                                         ) : report.status === 'rejected' ? (
-                                                            <div className="inline-flex items-center gap-2 text-red-400 bg-red-400/10 border border-red-400/20 px-3 py-1.5 rounded-lg font-mono text-xs uppercase tracking-wider">
-                                                                <AlertTriangle size={14} /> Rejected
+                                                            <div className="inline-flex items-center gap-1.5 text-red-400 bg-red-400/10 border border-red-400/20 px-2.5 py-1 rounded font-mono text-[10px] uppercase tracking-wider">
+                                                                <AlertTriangle size={12} /> Rejected
                                                             </div>
                                                         ) : (
-                                                            <div className="inline-flex items-center gap-2 text-white/50 bg-white/5 border border-white/10 px-3 py-1.5 rounded-lg font-mono text-xs uppercase tracking-wider">
-                                                                <FileWarning size={14} /> Pending
+                                                            <div className="inline-flex items-center gap-1.5 text-white/60 bg-white/5 border border-white/10 px-2.5 py-1 rounded font-mono text-[10px] uppercase tracking-wider">
+                                                                <FileWarning size={12} /> Pending
                                                             </div>
                                                         )}
                                                     </div>
@@ -242,6 +323,40 @@ export default function Dashboard() {
                                         ))}
                                     </div>
                                 )}
+                            </div>
+                        )}
+
+                        {activeTab === "profile" && (
+                            <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                                <h2 className="text-2xl text-white font-medium mb-2 font-display">Hunter Profile Card</h2>
+                                <p className="text-white/40 font-mono text-sm mb-8">Customize your public footprint on the White Hat Leaderboard.</p>
+
+                                <form onSubmit={handleUpdateProfile} className="space-y-6">
+                                    <div className="space-y-2">
+                                        <label className="block text-white/60 text-xs font-mono uppercase tracking-wider">Bio / Signature Statement</label>
+                                        <textarea rows={3} value={bio} onChange={e => setBio(e.target.value)} className="w-full bg-[#0a0a0a]/50 border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-phoenix focus:ring-1 focus:ring-phoenix/50 font-mono text-sm resize-none transition-all" placeholder="Tell the world who you are..." />
+                                    </div>
+
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <div className="space-y-2">
+                                            <label className="block text-white/60 text-xs font-mono uppercase tracking-wider">GitHub Username</label>
+                                            <input type="text" value={github} onChange={e => setGithub(e.target.value)} className="w-full bg-[#0a0a0a]/50 border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-phoenix focus:ring-1 focus:ring-phoenix/50 font-mono text-sm transition-all" placeholder="octocat" />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label className="block text-white/60 text-xs font-mono uppercase tracking-wider">Twitter/X Username</label>
+                                            <input type="text" value={twitter} onChange={e => setTwitter(e.target.value)} className="w-full bg-[#0a0a0a]/50 border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-phoenix focus:ring-1 focus:ring-phoenix/50 font-mono text-sm transition-all" placeholder="zsec_" />
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        <label className="block text-white/60 text-xs font-mono uppercase tracking-wider">Personal Website / Blog</label>
+                                        <input type="url" value={website} onChange={e => setWebsite(e.target.value)} className="w-full bg-[#0a0a0a]/50 border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-phoenix focus:ring-1 focus:ring-phoenix/50 font-mono text-sm transition-all" placeholder="https://hunter-domain.com" />
+                                    </div>
+
+                                    <button disabled={isSavingProfile} type="submit" className="w-full md:w-auto px-8 py-4 mt-4 bg-white/5 hover:bg-white/10 text-white border border-white/10 rounded-lg font-mono uppercase tracking-widest text-sm transition-all disabled:opacity-50 flex justify-center items-center gap-2">
+                                        {isSavingProfile ? 'Saving...' : <><Save size={18} /> Update Profile</>}
+                                    </button>
+                                </form>
                             </div>
                         )}
                     </div>

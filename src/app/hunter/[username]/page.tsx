@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
-import { Shield, Medal, CheckCircle, Calendar, ShieldAlert } from "lucide-react";
+import { Shield, Medal, CheckCircle, Calendar, ShieldAlert, Globe, Twitter, Github } from "lucide-react";
 import Link from 'next/link';
 import React from 'react';
 
@@ -23,7 +23,7 @@ export default async function HunterProfile({ params }: { params: { username: st
     // Fetch basic user profile info joining users & profiles
     const { data: userData, error: userError } = await supabase
         .from('users')
-        .select('created_at, profiles(avatar, bio, skills)')
+        .select('created_at, profiles(avatar, bio, skills, github_url, twitter_url, website_url)')
         .eq('username', username)
         .single();
 
@@ -48,6 +48,9 @@ export default async function HunterProfile({ params }: { params: { username: st
     const skills = profileDetails?.skills || ["Web Hacking", "PythonScripting", "Linux Basics"];
     const bio = profileDetails?.bio || "An aspiring ethical hacker ready to secure the digital perimeter.";
     const avatar = profileDetails?.avatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${username}`;
+    const githubLink = profileDetails?.github_url || null;
+    const twitterLink = profileDetails?.twitter_url || null;
+    const websiteLink = profileDetails?.website_url || null;
 
     const RankIcon = rankIcons[rank] || Shield;
 
@@ -103,6 +106,27 @@ export default async function HunterProfile({ params }: { params: { username: st
                                 <Calendar size={16} /> Joined {joinDate}
                             </div>
                         </div>
+
+                        {/* Social Links */}
+                        {(githubLink || twitterLink || websiteLink) && (
+                            <div className="mt-6 flex gap-3">
+                                {githubLink && (
+                                    <a href={`https://github.com/${githubLink.replace('https://github.com/', '')}`} target="_blank" rel="noopener noreferrer" className="p-2 bg-charcoal border border-white/10 text-white/50 hover:text-white hover:border-phoenix/50 transition-all rounded-lg">
+                                        <Github size={18} />
+                                    </a>
+                                )}
+                                {twitterLink && (
+                                    <a href={`https://twitter.com/${twitterLink.replace('https://twitter.com/', '').replace('https://x.com/', '')}`} target="_blank" rel="noopener noreferrer" className="p-2 bg-charcoal border border-white/10 text-white/50 hover:text-[#1DA1F2] hover:border-[#1DA1F2]/50 transition-all rounded-lg">
+                                        <Twitter size={18} />
+                                    </a>
+                                )}
+                                {websiteLink && (
+                                    <a href={websiteLink.startsWith('http') ? websiteLink : `https://${websiteLink}`} target="_blank" rel="noopener noreferrer" className="p-2 bg-charcoal border border-white/10 text-white/50 hover:text-phoenix hover:border-phoenix/50 transition-all rounded-lg">
+                                        <Globe size={18} />
+                                    </a>
+                                )}
+                            </div>
+                        )}
                     </div>
                 </div>
 
