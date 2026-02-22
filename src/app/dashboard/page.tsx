@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase";
 import { User } from "@supabase/supabase-js";
 import { Shield, FileWarning, Activity, Search, Crosshair, AlertTriangle, CheckCircle, Clock, Save, User as UserIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { Award, Target, Hash } from "lucide-react";
 
 type Report = {
     id: string;
@@ -36,8 +37,12 @@ export default function Dashboard() {
     const [bio, setBio] = useState("");
     const [github, setGithub] = useState("");
     const [twitter, setTwitter] = useState("");
+    const [instagram, setInstagram] = useState("");
+    const [linkedin, setLinkedin] = useState("");
     const [website, setWebsite] = useState("");
     const [isSavingProfile, setIsSavingProfile] = useState(false);
+
+    const [stats, setStats] = useState({ points: 0, rank: 'Ember Hunter', total_reports: 0, username: '' });
 
     const supabase = createClient();
     const router = useRouter();
@@ -72,7 +77,18 @@ export default function Dashboard() {
                 setBio(profileData.bio || "");
                 setGithub(profileData.github_url || "");
                 setTwitter(profileData.twitter_url || "");
+                setInstagram(profileData.instagram_url || "");
+                setLinkedin(profileData.linkedin_url || "");
                 setWebsite(profileData.website_url || "");
+            }
+
+            // Fetch Username & Stats for Banner
+            const { data: userData } = await supabase.from('users').select('username').eq('id', session.user.id).single();
+            if (userData) {
+                const { data: statsData } = await supabase.from('bughunter_leaderboard').select('*').eq('username', userData.username).single();
+                if (statsData) {
+                    setStats({ points: statsData.total_points, rank: statsData.rank, total_reports: statsData.total_reports, username: userData.username });
+                }
             }
         };
         init();
@@ -117,6 +133,8 @@ export default function Dashboard() {
                 bio,
                 github_url: github,
                 twitter_url: twitter,
+                instagram_url: instagram,
+                linkedin_url: linkedin,
                 website_url: website,
                 updated_at: new Date().toISOString()
             })
@@ -151,50 +169,96 @@ export default function Dashboard() {
                 </div>
 
                 <div className="flex flex-col lg:flex-row gap-8">
-                    {/* Navigation Panel */}
-                    <div className="w-full lg:w-72 flex flex-col gap-3">
-                        <button
-                            onClick={() => setActiveTab("submit")}
-                            className={`p-5 text-left font-mono text-sm transition-all flex items-center justify-between rounded-xl border backdrop-blur-md overflow-hidden relative group ${activeTab === "submit"
-                                ? "bg-phoenix/10 border-phoenix/50 text-white shadow-[0_0_30px_rgba(59,130,246,0.15)]"
-                                : "bg-white/5 border-white/10 text-white/50 hover:bg-white/10 hover:border-white/20"
-                                }`}
-                        >
-                            {activeTab === "submit" && <div className="absolute left-0 top-0 w-1 h-full bg-phoenix" />}
-                            <div className="flex items-center gap-3">
-                                <Crosshair size={18} className={activeTab === "submit" ? "text-phoenix" : ""} />
-                                <span>Lodge Report</span>
-                            </div>
-                        </button>
+                    {/* Sidebar Area */}
+                    <div className="w-full lg:w-[320px] flex flex-col gap-6">
 
-                        <button
-                            onClick={() => setActiveTab("history")}
-                            className={`p-5 text-left font-mono text-sm transition-all flex items-center justify-between rounded-xl border backdrop-blur-md overflow-hidden relative group ${activeTab === "history"
-                                ? "bg-phoenix/10 border-phoenix/50 text-white shadow-[0_0_30px_rgba(59,130,246,0.15)]"
-                                : "bg-white/5 border-white/10 text-white/50 hover:bg-white/10 hover:border-white/20"
-                                }`}
-                        >
-                            {activeTab === "history" && <div className="absolute left-0 top-0 w-1 h-full bg-phoenix" />}
-                            <div className="flex items-center gap-3">
-                                <Search size={18} className={activeTab === "history" ? "text-phoenix" : ""} />
-                                <span>Audit Log</span>
+                        {/* Hunter Profile Card */}
+                        <div className="bg-[#0a0a0a]/80 border border-white/10 rounded-2xl p-6 backdrop-blur-xl relative overflow-hidden group">
+                            <div className="absolute top-0 right-0 w-32 h-32 bg-phoenix/10 rounded-full blur-[50px] pointer-events-none group-hover:bg-phoenix/20 transition-colors duration-500" />
+                            <div className="flex items-center gap-4 mb-6 relative z-10">
+                                <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-phoenix to-purple-900 border border-white/20 flex items-center justify-center shadow-[0_0_20px_rgba(59,130,246,0.2)]">
+                                    <UserIcon size={28} className="text-white drop-shadow-md" />
+                                </div>
+                                <div>
+                                    <div className="text-white/50 font-mono text-xs uppercase tracking-widest mb-1">Operative</div>
+                                    <div className="text-xl text-white font-medium break-all">@{stats.username || 'Agent'}</div>
+                                </div>
                             </div>
-                            <span className="bg-[#0a0a0a] text-xs px-2 py-1 rounded-md border border-white/10">{history.length}</span>
-                        </button>
 
-                        <button
-                            onClick={() => setActiveTab("profile")}
-                            className={`p-5 text-left font-mono text-sm transition-all flex items-center justify-between rounded-xl border backdrop-blur-md overflow-hidden relative group ${activeTab === "profile"
-                                ? "bg-phoenix/10 border-phoenix/50 text-white shadow-[0_0_30px_rgba(59,130,246,0.15)]"
-                                : "bg-white/5 border-white/10 text-white/50 hover:bg-white/10 hover:border-white/20"
-                                }`}
-                        >
-                            {activeTab === "profile" && <div className="absolute left-0 top-0 w-1 h-full bg-phoenix" />}
-                            <div className="flex items-center gap-3">
-                                <UserIcon size={18} className={activeTab === "profile" ? "text-phoenix" : ""} />
-                                <span>Profile Settings</span>
+                            <div className="space-y-4 relative z-10">
+                                <div className="flex items-center justify-between border-b border-white/5 pb-4">
+                                    <div className="flex items-center gap-2 text-white/50 text-sm">
+                                        <Award size={16} className="text-phoenix" /> Rank
+                                    </div>
+                                    <div className={`px-2.5 py-1 text-xs font-mono uppercase tracking-wider rounded border ${stats.rank === 'Ascended Phoenix' ? 'bg-purple-500/10 text-purple-400 border-purple-500/30' :
+                                        stats.rank === 'Inferno Hunter' ? 'bg-red-500/10 text-red-500 border-red-500/30' :
+                                            stats.rank === 'Phoenix Hunter' ? 'bg-orange-500/10 text-orange-400 border-orange-500/30' :
+                                                stats.rank === 'Flame Hunter' ? 'bg-blue-500/10 text-blue-400 border-blue-500/30' :
+                                                    'bg-white/5 text-white/50 border-white/10'
+                                        }`}>
+                                        {stats.rank}
+                                    </div>
+                                </div>
+                                <div className="flex items-center justify-between border-b border-white/5 pb-4">
+                                    <div className="flex items-center gap-2 text-white/50 text-sm">
+                                        <Hash size={16} className="text-phoenix" /> Reputation
+                                    </div>
+                                    <div className="text-white font-mono text-lg">{stats.points} <span className="text-xs text-white/40">pts</span></div>
+                                </div>
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-2 text-white/50 text-sm">
+                                        <Target size={16} className="text-phoenix" /> Approvals
+                                    </div>
+                                    <div className="text-white font-mono text-lg">{stats.total_reports}</div>
+                                </div>
                             </div>
-                        </button>
+                        </div>
+
+                        {/* Navigation Menu */}
+                        <div className="flex flex-col gap-3">
+                            <button
+                                onClick={() => setActiveTab("submit")}
+                                className={`p-5 text-left font-mono text-sm transition-all flex items-center justify-between rounded-xl border backdrop-blur-md overflow-hidden relative group ${activeTab === "submit"
+                                    ? "bg-phoenix/10 border-phoenix/50 text-white shadow-[0_0_30px_rgba(59,130,246,0.15)]"
+                                    : "bg-white/5 border-white/10 text-white/50 hover:bg-white/10 hover:border-white/20"
+                                    }`}
+                            >
+                                {activeTab === "submit" && <div className="absolute left-0 top-0 w-1 h-full bg-phoenix" />}
+                                <div className="flex items-center gap-3">
+                                    <Crosshair size={18} className={activeTab === "submit" ? "text-phoenix" : ""} />
+                                    <span>Lodge Report</span>
+                                </div>
+                            </button>
+
+                            <button
+                                onClick={() => setActiveTab("history")}
+                                className={`p-5 text-left font-mono text-sm transition-all flex items-center justify-between rounded-xl border backdrop-blur-md overflow-hidden relative group ${activeTab === "history"
+                                    ? "bg-phoenix/10 border-phoenix/50 text-white shadow-[0_0_30px_rgba(59,130,246,0.15)]"
+                                    : "bg-white/5 border-white/10 text-white/50 hover:bg-white/10 hover:border-white/20"
+                                    }`}
+                            >
+                                {activeTab === "history" && <div className="absolute left-0 top-0 w-1 h-full bg-phoenix" />}
+                                <div className="flex items-center gap-3">
+                                    <Search size={18} className={activeTab === "history" ? "text-phoenix" : ""} />
+                                    <span>Audit Log</span>
+                                </div>
+                                <span className="bg-[#0a0a0a] text-xs px-2 py-1 rounded-md border border-white/10">{history.length}</span>
+                            </button>
+
+                            <button
+                                onClick={() => setActiveTab("profile")}
+                                className={`p-5 text-left font-mono text-sm transition-all flex items-center justify-between rounded-xl border backdrop-blur-md overflow-hidden relative group ${activeTab === "profile"
+                                    ? "bg-phoenix/10 border-phoenix/50 text-white shadow-[0_0_30px_rgba(59,130,246,0.15)]"
+                                    : "bg-white/5 border-white/10 text-white/50 hover:bg-white/10 hover:border-white/20"
+                                    }`}
+                            >
+                                {activeTab === "profile" && <div className="absolute left-0 top-0 w-1 h-full bg-phoenix" />}
+                                <div className="flex items-center gap-3">
+                                    <UserIcon size={18} className={activeTab === "profile" ? "text-phoenix" : ""} />
+                                    <span>Profile Settings</span>
+                                </div>
+                            </button>
+                        </div>
                     </div>
 
                     {/* Main Interface */}
@@ -369,9 +433,15 @@ export default function Dashboard() {
                                         </div>
                                     </div>
 
-                                    <div className="space-y-2">
-                                        <label className="block text-white/60 text-xs font-mono uppercase tracking-wider">Personal Website / Blog</label>
-                                        <input type="url" value={website} onChange={e => setWebsite(e.target.value)} className="w-full bg-[#0a0a0a]/50 border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-phoenix focus:ring-1 focus:ring-phoenix/50 font-mono text-sm transition-all" placeholder="https://hunter-domain.com" />
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <div className="space-y-2">
+                                            <label className="block text-white/60 text-xs font-mono uppercase tracking-wider">Instagram URL</label>
+                                            <input type="url" value={instagram} onChange={e => setInstagram(e.target.value)} className="w-full bg-[#0a0a0a]/50 border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-phoenix focus:ring-1 focus:ring-phoenix/50 font-mono text-sm transition-all" placeholder="https://instagram.com/zsec" />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label className="block text-white/60 text-xs font-mono uppercase tracking-wider">Personal Website / Blog</label>
+                                            <input type="url" value={website} onChange={e => setWebsite(e.target.value)} className="w-full bg-[#0a0a0a]/50 border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-phoenix focus:ring-1 focus:ring-phoenix/50 font-mono text-sm transition-all" placeholder="https://hunter-domain.com" />
+                                        </div>
                                     </div>
 
                                     <button disabled={isSavingProfile} type="submit" className="w-full md:w-auto px-8 py-4 mt-4 bg-white/5 hover:bg-white/10 text-white border border-white/10 rounded-lg font-mono uppercase tracking-widest text-sm transition-all disabled:opacity-50 flex justify-center items-center gap-2">
