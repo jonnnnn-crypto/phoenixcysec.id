@@ -149,7 +149,7 @@ export default function About() {
                 </div>
 
                 {/* Core Pillars Grid */}
-                <div className="about-grid grid grid-cols-1 md:grid-cols-3 gap-8 mb-32">
+                <div className="about-grid grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-32">
                     <div className="about-card p-10 bg-[#111] border border-white/5 hover:border-phoenix/50 transition-all group relative overflow-hidden">
                         <div className="absolute -right-4 -top-4 text-white/5 rotate-12 group-hover:text-phoenix/10 transition-colors">
                             <Calendar size={120} />
@@ -189,6 +189,49 @@ export default function About() {
                         <p className="text-white/50 text-sm leading-relaxed font-light">
                             Fokus kami bukan pada kuantitas, melainkan kualitas lulusan yang memiliki
                             etika tinggi dan kemampuan teknis yang siap diadu di level nasional.
+                        </p>
+                    </div>
+
+                    {/* New Cards */}
+                    <div className="about-card p-10 bg-[#111] border border-white/5 hover:border-phoenix/50 transition-all group relative overflow-hidden">
+                        <div className="absolute -right-4 -top-4 text-white/5 rotate-12 group-hover:text-phoenix/10 transition-colors">
+                            <ShieldCheck size={120} />
+                        </div>
+                        <div className="p-4 bg-phoenix/10 text-phoenix rounded-xl w-fit mb-6 group-hover:scale-110 transition-transform">
+                            <ShieldCheck size={28} />
+                        </div>
+                        <h3 className="text-2xl font-display font-bold text-white mb-4">Global Standards</h3>
+                        <p className="text-white/50 text-sm leading-relaxed font-light">
+                            Kurikulum kami mengacu pada kerangka kerja internasional seperti NIST dan MITRE ATT&CK
+                            untuk memastikan standar pengamanan kelas dunia.
+                        </p>
+                    </div>
+
+                    <div className="about-card p-10 bg-[#111] border border-white/5 hover:border-phoenix/50 transition-all group relative overflow-hidden">
+                        <div className="absolute -right-4 -top-4 text-white/5 rotate-12 group-hover:text-phoenix/10 transition-colors">
+                            <Target size={120} />
+                        </div>
+                        <div className="p-4 bg-phoenix/10 text-phoenix rounded-xl w-fit mb-6 group-hover:scale-110 transition-transform">
+                            <Target size={28} />
+                        </div>
+                        <h3 className="text-2xl font-display font-bold text-white mb-4">Real-World Case</h3>
+                        <p className="text-white/50 text-sm leading-relaxed font-light">
+                            Kami menggunakan skenario insiden nyata untuk melatih kemampuan analisis
+                            dan respons member terhadap ancaman yang sebenarnya di lapangan.
+                        </p>
+                    </div>
+
+                    <div className="about-card p-10 bg-[#111] border border-white/5 hover:border-phoenix/50 transition-all group relative overflow-hidden">
+                        <div className="absolute -right-4 -top-4 text-white/5 rotate-12 group-hover:text-phoenix/10 transition-colors">
+                            <Zap size={120} />
+                        </div>
+                        <div className="p-4 bg-phoenix/10 text-phoenix rounded-xl w-fit mb-6 group-hover:scale-110 transition-transform">
+                            <Zap size={28} />
+                        </div>
+                        <h3 className="text-2xl font-display font-bold text-white mb-4">Continuous Innovation</h3>
+                        <p className="text-white/50 text-sm leading-relaxed font-light">
+                            Dunia siber berubah setiap detik. Kami terus melakukan riset dan memperbarui
+                            metode pengajaran agar selalu selangkah di depan para penyerang.
                         </p>
                     </div>
                 </div>
