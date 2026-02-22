@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase";
-import { Users, FileWarning, Handshake, ShieldAlert, CheckCircle, XCircle, Loader2, Trash2, Plus, BookOpen } from "lucide-react";
+import { Users, FileWarning, Handshake, ShieldAlert, CheckCircle, XCircle, Loader2, Trash2, Plus, BookOpen, Calendar } from "lucide-react";
 
 type PendingReport = {
     id: string;
@@ -31,6 +31,13 @@ type Documentation = {
     category: string;
 };
 
+type Event = {
+    id: string;
+    title: string;
+    event_date: string;
+    location: string;
+};
+
 export default function AdminDashboard() {
     const [activeTab, setActiveTab] = useState("reports");
     const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
@@ -39,6 +46,7 @@ export default function AdminDashboard() {
     const [pendingReports, setPendingReports] = useState<PendingReport[]>([]);
     const [partners, setPartners] = useState<Partner[]>([]);
     const [docs, setDocs] = useState<Documentation[]>([]);
+    const [events, setEvents] = useState<Event[]>([]);
 
     const [totalMembers, setTotalMembers] = useState(0);
     const [loadingAction, setLoadingAction] = useState<string | null>(null);
@@ -51,6 +59,11 @@ export default function AdminDashboard() {
     const [newDocTitle, setNewDocTitle] = useState("");
     const [newDocSlug, setNewDocSlug] = useState("");
     const [newDocCategory, setNewDocCategory] = useState("Beginner Cybersecurity");
+
+    const [newEventTitle, setNewEventTitle] = useState("");
+    const [newEventDate, setNewEventDate] = useState("");
+    const [newEventLocation, setNewEventLocation] = useState("");
+    const [newEventLink, setNewEventLink] = useState("");
 
     const router = useRouter();
     const supabase = createClient();
@@ -68,6 +81,9 @@ export default function AdminDashboard() {
 
             const { data: docsData } = await supabase.from('documentation').select('*').order('created_at', { ascending: false });
             if (docsData) setDocs(docsData as Documentation[]);
+
+            const { data: eventsData } = await supabase.from('events').select('*').order('event_date', { ascending: true });
+            if (eventsData) setEvents(eventsData as Event[]);
 
             const { count: memberCount } = await supabase.from('users').select('*', { count: 'exact', head: true });
             if (memberCount !== null) setTotalMembers(memberCount);
@@ -169,6 +185,37 @@ export default function AdminDashboard() {
         setLoadingAction(null);
     };
 
+    const handleAddEvent = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setLoadingAction('add_event');
+        const { data: sessionData } = await supabase.auth.getSession();
+        const { data, error } = await supabase
+            .from('events')
+            .insert([{
+                title: newEventTitle,
+                event_date: newEventDate,
+                location: newEventLocation,
+                registration_link: newEventLink,
+                created_by: sessionData.session?.user.id
+            }])
+            .select();
+
+        if (error) alert(error.message);
+        else if (data) {
+            setEvents(prev => [...prev, data[0] as Event].sort((a, b) => new Date(a.event_date).getTime() - new Date(b.event_date).getTime()));
+            setNewEventTitle(""); setNewEventDate(""); setNewEventLocation(""); setNewEventLink("");
+        }
+        setLoadingAction(null);
+    };
+
+    const handleDeleteEvent = async (id: string) => {
+        if (!confirm("Delete this event?")) return;
+        setLoadingAction(id);
+        const { error } = await supabase.from('events').delete().eq('id', id);
+        if (!error) setEvents(prev => prev.filter(e => e.id !== id));
+        setLoadingAction(null);
+    };
+
     if (isAdmin === null) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-[#050505]">
@@ -222,6 +269,7 @@ export default function AdminDashboard() {
                             { id: "reports", label: "Report Moderation", icon: FileWarning },
                             { id: "partners", label: "Partners & Ecosystem", icon: Handshake },
                             { id: "docs", label: "Knowledge Base", icon: BookOpen },
+                            { id: "events", label: "Cyber Events", icon: Calendar }
                         ].map(tab => (
                             <button
                                 key={tab.id}
@@ -387,6 +435,61 @@ export default function AdminDashboard() {
                                                         <td className="p-4 text-white/60">{d.category}</td>
                                                         <td className="p-4 text-right">
                                                             <button onClick={() => handleDeleteDoc(d.id)} className="text-red-500 hover:text-red-400 p-2"><Trash2 size={16} /></button>
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    )}
+                                </div>
+                            </div>
+                        )}
+
+                        {activeTab === "events" && (
+                            <div className="animate-in fade-in relative z-10">
+                                <h2 className="text-xl text-white font-medium mb-6 flex items-center gap-2">
+                                    <Calendar className="text-phoenix" size={20} /> Events Management
+                                </h2>
+                                <form onSubmit={handleAddEvent} className="mb-8 p-6 border border-white/10 bg-[#111] grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
+                                    <div className="md:col-span-1">
+                                        <label className="block text-xs font-mono text-white/50 mb-2 uppercase">Event Title</label>
+                                        <input type="text" required value={newEventTitle} onChange={e => setNewEventTitle(e.target.value)} className="w-full bg-[#0a0a0a] border border-white/10 p-3 text-white font-mono text-sm outline-none focus:border-phoenix" placeholder="CTF Hacking 101" />
+                                    </div>
+                                    <div className="md:col-span-1">
+                                        <label className="block text-xs font-mono text-white/50 mb-2 uppercase">Date & Time</label>
+                                        <input type="datetime-local" required value={newEventDate} onChange={e => setNewEventDate(e.target.value)} className="w-full bg-[#0a0a0a] border border-white/10 p-3 text-white/50 font-mono text-sm outline-none" />
+                                    </div>
+                                    <div className="md:col-span-1">
+                                        <label className="block text-xs font-mono text-white/50 mb-2 uppercase">Location</label>
+                                        <input type="text" required value={newEventLocation} onChange={e => setNewEventLocation(e.target.value)} className="w-full bg-[#0a0a0a] border border-white/10 p-3 text-white font-mono text-sm outline-none focus:border-phoenix" placeholder="Discord / Zoom" />
+                                    </div>
+                                    <div className="md:col-span-1">
+                                        <label className="block text-xs font-mono text-white/50 mb-2 uppercase">Registration Link</label>
+                                        <input type="url" value={newEventLink} onChange={e => setNewEventLink(e.target.value)} className="w-full bg-[#0a0a0a] border border-white/10 p-3 text-white/50 font-mono text-sm outline-none" placeholder="https://..." />
+                                    </div>
+                                    <div className="md:col-span-1">
+                                        <button disabled={loadingAction === 'add_event'} type="submit" className="w-full py-3 bg-phoenix hover:bg-phoenix-light text-white font-mono text-sm uppercase flex justify-center items-center gap-2">
+                                            {loadingAction === 'add_event' ? <Loader2 size={16} className="animate-spin" /> : <><Plus size={16} /> Schedule</>}
+                                        </button>
+                                    </div>
+                                </form>
+
+                                <div className="border border-white/10 bg-[#111]">
+                                    {events.length === 0 ? (
+                                        <p className="p-6 text-center text-white/40 font-mono text-sm">No upcoming events scheduled.</p>
+                                    ) : (
+                                        <table className="w-full text-left font-sans text-sm">
+                                            <thead className="bg-[#1a1a1a] border-b border-white/10 text-white/40 font-mono text-xs uppercase">
+                                                <tr><th className="p-4">Event</th><th className="p-4">Date</th><th className="p-4">Location</th><th className="p-4 text-right">Actions</th></tr>
+                                            </thead>
+                                            <tbody className="divide-y divide-white/5">
+                                                {events.map(e => (
+                                                    <tr key={e.id} className="hover:bg-white/5">
+                                                        <td className="p-4 text-white font-medium">{e.title}</td>
+                                                        <td className="p-4 text-white/60">{new Date(e.event_date).toLocaleString()}</td>
+                                                        <td className="p-4 text-white/60">{e.location}</td>
+                                                        <td className="p-4 text-right">
+                                                            <button onClick={() => handleDeleteEvent(e.id)} className="text-red-500 hover:text-red-400 p-2"><Trash2 size={16} /></button>
                                                         </td>
                                                     </tr>
                                                 ))}
